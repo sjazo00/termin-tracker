@@ -337,7 +337,6 @@ export const AddMatchView: React.FC<AddMatchViewProps> = ({
                   className="bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 flex items-center gap-2 text-xs text-white"
                 >
                   <span className="font-semibold">{player.name}</span>
-                  {player.nickname && <span className="text-slate-400">({player.nickname})</span>}
                   
                   <div className="flex items-center gap-1 ml-1 border-l border-slate-800 pl-2">
                     <button
@@ -450,7 +449,6 @@ export const AddMatchView: React.FC<AddMatchViewProps> = ({
                     >
                       <div>
                         <div className="font-bold text-sm text-white">{p.name}</div>
-                        {p.nickname && <div className="text-[11px] text-slate-400">{p.nickname}</div>}
                       </div>
 
                       <div className="flex items-center gap-2">
@@ -518,7 +516,6 @@ export const AddMatchView: React.FC<AddMatchViewProps> = ({
                     >
                       <div>
                         <div className="font-bold text-sm text-white">{p.name}</div>
-                        {p.nickname && <div className="text-[11px] text-slate-400">{p.nickname}</div>}
                       </div>
 
                       <div className="flex items-center gap-2">
@@ -581,7 +578,7 @@ export const AddMatchView: React.FC<AddMatchViewProps> = ({
                 const isZ = zeleniLineup.some((z) => z.playerId === p.id);
                 return (
                   <option key={p.id} value={p.id}>
-                    {p.name} {p.nickname ? `(${p.nickname})` : ''} [{isZ ? 'Zeleni' : 'Šareni'}]
+                    {p.name} [{isZ ? 'Zeleni' : 'Šareni'}]
                   </option>
                 );
               })}

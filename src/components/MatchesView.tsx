@@ -234,7 +234,7 @@ export const MatchesView: React.FC<MatchesViewProps> = ({
                                 className="flex items-center justify-between py-1 px-2 rounded-lg bg-slate-900/60"
                               >
                                 <span className="text-slate-200">
-                                  {mp.player?.name} {mp.player?.nickname ? `(${mp.player.nickname})` : ''}
+                                  {mp.player?.name}
                                   {match.mvp_player_id === mp.player_id && ' 🏆'}
                                 </span>
                                 <span className="font-bold text-emerald-400">
@@ -262,7 +262,7 @@ export const MatchesView: React.FC<MatchesViewProps> = ({
                                 className="flex items-center justify-between py-1 px-2 rounded-lg bg-slate-900/60"
                               >
                                 <span className="text-slate-200">
-                                  {mp.player?.name} {mp.player?.nickname ? `(${mp.player.nickname})` : ''}
+                                  {mp.player?.name}
                                   {match.mvp_player_id === mp.player_id && ' 🏆'}
                                 </span>
                                 <span className="font-bold text-amber-400">

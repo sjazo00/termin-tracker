@@ -183,7 +183,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                           className="flex items-center justify-between text-sm py-1 px-2.5 rounded-lg bg-slate-900/80 border border-slate-800"
                         >
                           <span className="text-slate-200 font-medium">
-                            {mp.player?.name} {mp.player?.nickname ? `(${mp.player.nickname})` : ''}
+                            {mp.player?.name}
                           </span>
                           <span className="font-bold text-emerald-400 flex items-center gap-1">
                             ⚽ {mp.goals}
@@ -212,7 +212,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                           className="flex items-center justify-between text-sm py-1 px-2.5 rounded-lg bg-slate-900/80 border border-slate-800"
                         >
                           <span className="text-slate-200 font-medium">
-                            {mp.player?.name} {mp.player?.nickname ? `(${mp.player.nickname})` : ''}
+                            {mp.player?.name}
                           </span>
                           <span className="font-bold text-amber-400 flex items-center gap-1">
                             ⚽ {mp.goals}
@@ -239,8 +239,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                       MVP Utakmice
                     </div>
                     <div className="font-extrabold text-sm sm:text-base text-white">
-                      {latestMatch.mvp_player.name}{' '}
-                      {latestMatch.mvp_player.nickname ? `(${latestMatch.mvp_player.nickname})` : ''}
+                      {latestMatch.mvp_player.name}
                     </div>
                   </div>
                 </div>
@@ -297,9 +296,6 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             <h4 className="text-xl font-black text-white">
               {topScorer ? topScorer.player.name : '—'}
             </h4>
-            <p className="text-xs text-slate-400">
-              {topScorer?.player.nickname ? `"${topScorer.player.nickname}"` : ''}
-            </p>
           </div>
 
           <div className="mt-4 pt-3 border-t border-slate-800/80 flex items-baseline justify-between">
@@ -332,9 +328,6 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             <h4 className="text-xl font-black text-white">
               {topMvp && topMvp.mvpCount > 0 ? topMvp.player.name : '—'}
             </h4>
-            <p className="text-xs text-slate-400">
-              {topMvp?.player.nickname ? `"${topMvp.player.nickname}"` : ''}
-            </p>
           </div>
 
           <div className="mt-4 pt-3 border-t border-slate-800/80 flex items-baseline justify-between">

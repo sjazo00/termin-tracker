@@ -16,18 +16,18 @@ export const INITIAL_SEASONS: Season[] = [
 ];
 
 export const INITIAL_PLAYERS: Player[] = [
-  { id: 'p-1', name: 'Ivan', nickname: 'Ico', is_active: true },
-  { id: 'p-2', name: 'Marko', nickname: 'Mare', is_active: true },
-  { id: 'p-3', name: 'Luka', nickname: 'Luki', is_active: true },
-  { id: 'p-4', name: 'Ante', nickname: 'Toni', is_active: true },
-  { id: 'p-5', name: 'Filip', nickname: 'Fićo', is_active: true },
-  { id: 'p-6', name: 'Petar', nickname: 'Pero', is_active: true },
-  { id: 'p-7', name: 'Josip', nickname: 'Jole', is_active: true },
-  { id: 'p-8', name: 'Matej', nickname: 'Matko', is_active: true },
-  { id: 'p-9', name: 'Tomislav', nickname: 'Tomo', is_active: true },
-  { id: 'p-10', name: 'Dino', nickname: 'Dina', is_active: true },
-  { id: 'p-11', name: 'Borna', nickname: 'Boki', is_active: true },
-  { id: 'p-12', name: 'Stipe', nickname: 'Stipe', is_active: true },
+  { id: 'p-1', name: 'Ivan', is_active: true },
+  { id: 'p-2', name: 'Marko', is_active: true },
+  { id: 'p-3', name: 'Luka', is_active: true },
+  { id: 'p-4', name: 'Ante', is_active: true },
+  { id: 'p-5', name: 'Filip', is_active: true },
+  { id: 'p-6', name: 'Petar', is_active: true },
+  { id: 'p-7', name: 'Josip', is_active: true },
+  { id: 'p-8', name: 'Matej', is_active: true },
+  { id: 'p-9', name: 'Tomislav', is_active: true },
+  { id: 'p-10', name: 'Dino', is_active: true },
+  { id: 'p-11', name: 'Borna', is_active: true },
+  { id: 'p-12', name: 'Stipe', is_active: true },
 ];
 
 export const INITIAL_MATCHES: Match[] = [

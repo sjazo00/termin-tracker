@@ -153,9 +153,6 @@ export const LeaderboardView: React.FC<LeaderboardViewProps> = ({
               <div className="text-xs sm:text-sm font-bold text-white truncate max-w-[90px] sm:max-w-[120px]">
                 {top3[1].player.name}
               </div>
-              <div className="text-[10px] text-slate-400 truncate">
-                {top3[1].player.nickname || ''}
-              </div>
             </div>
             <div className="w-full mt-2 bg-gradient-to-t from-slate-900 to-slate-800/90 border border-slate-700/60 rounded-t-xl p-3 text-center h-24 sm:h-28 flex flex-col justify-center">
               <span className="text-lg sm:text-xl font-black text-slate-200 font-mono">
@@ -177,9 +174,6 @@ export const LeaderboardView: React.FC<LeaderboardViewProps> = ({
             <div className="text-center mt-3">
               <div className="text-sm sm:text-base font-black text-amber-300 truncate max-w-[100px] sm:max-w-[140px]">
                 {top3[0].player.name}
-              </div>
-              <div className="text-[11px] text-amber-400/80 truncate">
-                {top3[0].player.nickname ? `"${top3[0].player.nickname}"` : ''}
               </div>
             </div>
             <div className="w-full mt-2 bg-gradient-to-t from-amber-950/40 via-slate-900 to-slate-800 border-2 border-amber-500/40 rounded-t-2xl p-4 text-center h-32 sm:h-36 flex flex-col justify-center shadow-lg shadow-amber-500/10">
@@ -204,9 +198,6 @@ export const LeaderboardView: React.FC<LeaderboardViewProps> = ({
             <div className="text-center mt-2">
               <div className="text-xs sm:text-sm font-bold text-white truncate max-w-[90px] sm:max-w-[120px]">
                 {top3[2].player.name}
-              </div>
-              <div className="text-[10px] text-slate-400 truncate">
-                {top3[2].player.nickname || ''}
               </div>
             </div>
             <div className="w-full mt-2 bg-gradient-to-t from-slate-900 to-slate-800/90 border border-slate-700/60 rounded-t-xl p-3 text-center h-20 sm:h-24 flex flex-col justify-center">
@@ -273,11 +264,6 @@ export const LeaderboardView: React.FC<LeaderboardViewProps> = ({
                     <td className="px-4 py-3.5">
                       <div className="font-bold text-white flex items-center gap-2">
                         <span>{stat.player.name}</span>
-                        {stat.player.nickname && (
-                          <span className="text-xs font-normal text-slate-400">
-                            ({stat.player.nickname})
-                          </span>
-                        )}
                         {!stat.player.is_active && (
                           <span className="text-[10px] bg-slate-800 text-slate-500 px-1.5 py-0.5 rounded">
                             Neaktivan

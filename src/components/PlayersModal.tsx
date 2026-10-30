@@ -199,12 +199,7 @@ export const PlayersModal: React.FC<PlayersModalProps> = ({
                       <div className="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center font-bold text-xs text-slate-300">
                         {player.name.substring(0, 1).toUpperCase()}
                       </div>
-                      <div>
-                        <div className="font-bold text-sm text-white">{player.name}</div>
-                        {player.nickname && (
-                          <div className="text-xs text-slate-400">"{player.nickname}"</div>
-                        )}
-                      </div>
+                      <div className="font-bold text-sm text-white">{player.name}</div>
                     </div>
 
                     <div className="flex items-center gap-2">
