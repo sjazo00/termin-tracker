@@ -62,7 +62,6 @@ export const AddMatchView: React.FC<AddMatchViewProps> = ({
   // Quick Add Player modal state
   const [isAddingPlayer, setIsAddingPlayer] = useState(false);
   const [newPlayerName, setNewPlayerName] = useState('');
-  const [newPlayerNickname, setNewPlayerNickname] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Set default season on load
@@ -139,9 +138,8 @@ export const AddMatchView: React.FC<AddMatchViewProps> = ({
     e.preventDefault();
     if (!newPlayerName.trim()) return;
     try {
-      const player = await onAddPlayer(newPlayerName.trim(), newPlayerNickname.trim() || undefined);
+      await onAddPlayer(newPlayerName.trim());
       setNewPlayerName('');
-      setNewPlayerNickname('');
       setIsAddingPlayer(false);
       // Auto assign to available
     } catch (err: any) {
@@ -370,18 +368,11 @@ export const AddMatchView: React.FC<AddMatchViewProps> = ({
           <div className="p-4 bg-slate-800/90 rounded-2xl border border-slate-700 flex flex-col sm:flex-row items-center gap-3 animate-fadeIn">
             <input
               type="text"
-              placeholder="Ime i prezime..."
+              placeholder="Ime igrača (npr. Mario)..."
               value={newPlayerName}
               onChange={(e) => setNewPlayerName(e.target.value)}
               className="flex-1 bg-slate-950 border border-slate-600 rounded-xl px-3 py-2 text-sm text-white"
               autoFocus
-            />
-            <input
-              type="text"
-              placeholder="Nadimak (opcionalno)..."
-              value={newPlayerNickname}
-              onChange={(e) => setNewPlayerNickname(e.target.value)}
-              className="w-full sm:w-48 bg-slate-950 border border-slate-600 rounded-xl px-3 py-2 text-sm text-white"
             />
             <div className="flex items-center gap-2 w-full sm:w-auto">
               <button

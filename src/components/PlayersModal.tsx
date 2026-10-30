@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, UserPlus, Check, Search, Edit2, ShieldAlert } from 'lucide-react';
+import { X, UserPlus, Check, Search, Edit2 } from 'lucide-react';
 import type { Player } from '../types';
 
 interface PlayersModalProps {
@@ -17,27 +17,27 @@ export const PlayersModal: React.FC<PlayersModalProps> = ({
   players,
   onAddPlayer,
   onUpdatePlayer,
-  adminPin,
 }) => {
   const [search, setSearch] = useState('');
   const [name, setName] = useState('');
-  const [nickname, setNickname] = useState('');
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editName, setEditName] = useState('');
-  const [editNickname, setEditNickname] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   if (!isOpen) return null;
 
-  const handleAdd = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleAdd = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
     if (!name.trim()) return;
 
     setIsSubmitting(true);
     try {
-      await onAddPlayer(name.trim(), nickname.trim() || undefined);
+      const rawNames = name.includes('\n') ? name.split('\n') : name.split(',');
+      const names = rawNames.map((s) => s.trim()).filter(Boolean);
+      for (const singleName of names) {
+        await onAddPlayer(singleName);
+      }
       setName('');
-      setNickname('');
     } catch (err: any) {
       alert('Greška pri dodavanju: ' + (err.message || 'Igrač možda već postoji.'));
     } finally {
@@ -48,7 +48,6 @@ export const PlayersModal: React.FC<PlayersModalProps> = ({
   const handleStartEdit = (player: Player) => {
     setEditingId(player.id);
     setEditName(player.name);
-    setEditNickname(player.nickname || '');
   };
 
   const handleSaveEdit = async (id: string) => {
@@ -56,7 +55,6 @@ export const PlayersModal: React.FC<PlayersModalProps> = ({
     try {
       await onUpdatePlayer(id, {
         name: editName.trim(),
-        nickname: editNickname.trim() || undefined,
       });
       setEditingId(null);
     } catch (err: any) {
@@ -69,6 +67,31 @@ export const PlayersModal: React.FC<PlayersModalProps> = ({
       await onUpdatePlayer(player.id, { is_active: !player.is_active });
     } catch (err: any) {
       alert('Greška: ' + err.message);
+    }
+  };
+
+  const handleSaveAndClose = async () => {
+    setIsSubmitting(true);
+    try {
+      // 1. If inline editing is active, save that change
+      if (editingId && editName.trim()) {
+        await onUpdatePlayer(editingId, { name: editName.trim() });
+        setEditingId(null);
+      }
+      // 2. If name input has content, add it immediately
+      if (name.trim()) {
+        const rawNames = name.includes('\n') ? name.split('\n') : name.split(',');
+        const names = rawNames.map((s) => s.trim()).filter(Boolean);
+        for (const singleName of names) {
+          await onAddPlayer(singleName);
+        }
+        setName('');
+      }
+      onClose();
+    } catch (err: any) {
+      alert('Greška pri spremanju: ' + (err.message || 'Pokušajte ponovno.'));
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -98,31 +121,24 @@ export const PlayersModal: React.FC<PlayersModalProps> = ({
           </button>
         </div>
 
-        {/* Add Player Form */}
+        {/* Add Player Form (Only Name, supports multiple with commas) */}
         <div className="p-5 bg-slate-950/40 border-b border-slate-800">
-          <form onSubmit={handleAdd} className="flex flex-col sm:flex-row gap-2">
+          <form onSubmit={handleAdd} className="flex gap-2">
             <input
               type="text"
               required
-              placeholder="Ime igrača (npr. Mario)..."
+              placeholder="Ime igrača (npr. Mario ili Marko, Ivan, Luka)..."
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="flex-1 bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-emerald-500"
-            />
-            <input
-              type="text"
-              placeholder="Nadimak (npr. Manđo)..."
-              value={nickname}
-              onChange={(e) => setNickname(e.target.value)}
-              className="w-full sm:w-44 bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-emerald-500"
+              className="flex-1 bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-emerald-500 placeholder-slate-500"
             />
             <button
               type="submit"
               disabled={isSubmitting}
-              className="px-4 py-2 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-sm rounded-xl transition-colors flex items-center justify-center gap-1.5 whitespace-nowrap"
+              className="px-5 py-2 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-sm rounded-xl transition-colors flex items-center justify-center gap-1.5 whitespace-nowrap shadow-sm disabled:opacity-50"
             >
               <UserPlus className="w-4 h-4" />
-              <span>Dodaj Igrača</span>
+              <span>Dodaj</span>
             </button>
           </form>
         </div>
@@ -157,24 +173,22 @@ export const PlayersModal: React.FC<PlayersModalProps> = ({
                       type="text"
                       value={editName}
                       onChange={(e) => setEditName(e.target.value)}
-                      className="bg-slate-950 border border-slate-600 px-2.5 py-1 rounded-lg text-sm text-white flex-1"
-                    />
-                    <input
-                      type="text"
-                      value={editNickname}
-                      onChange={(e) => setEditNickname(e.target.value)}
-                      placeholder="Nadimak"
-                      className="bg-slate-950 border border-slate-600 px-2.5 py-1 rounded-lg text-sm text-white w-28"
+                      className="bg-slate-950 border border-slate-600 px-2.5 py-1.5 rounded-lg text-sm text-white flex-1 focus:outline-none focus:border-emerald-500"
+                      autoFocus
                     />
                     <button
+                      type="button"
                       onClick={() => handleSaveEdit(player.id)}
-                      className="p-1.5 bg-emerald-500 text-slate-950 rounded-lg font-bold"
+                      className="p-2 bg-emerald-500 hover:bg-emerald-400 text-slate-950 rounded-lg font-bold transition-colors"
+                      title="Spremi"
                     >
                       <Check className="w-4 h-4" />
                     </button>
                     <button
+                      type="button"
                       onClick={() => setEditingId(null)}
-                      className="p-1.5 text-slate-400 hover:text-white"
+                      className="p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors"
+                      title="Odustani"
                     >
                       <X className="w-4 h-4" />
                     </button>
@@ -208,7 +222,7 @@ export const PlayersModal: React.FC<PlayersModalProps> = ({
                       <button
                         onClick={() => handleStartEdit(player)}
                         className="p-1.5 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors"
-                        title="Uredi"
+                        title="Uredi ime"
                       >
                         <Edit2 className="w-3.5 h-3.5" />
                       </button>
@@ -220,14 +234,29 @@ export const PlayersModal: React.FC<PlayersModalProps> = ({
           )}
         </div>
 
-        {/* Modal Footer */}
-        <div className="p-4 bg-slate-950/80 border-t border-slate-800 flex justify-end">
-          <button
-            onClick={onClose}
-            className="px-5 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-sm font-semibold transition-colors"
-          >
-            Zatvori
-          </button>
+        {/* Modal Footer with "Spremi" and "Zatvori" */}
+        <div className="p-4 bg-slate-950/80 border-t border-slate-800 flex items-center justify-between">
+          <div className="text-xs text-slate-400">
+            Ukupno: <span className="font-semibold text-white">{players.length}</span> igrača
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white rounded-xl text-sm font-semibold transition-colors"
+            >
+              Zatvori
+            </button>
+            <button
+              type="button"
+              onClick={handleSaveAndClose}
+              disabled={isSubmitting}
+              className="px-5 py-2 bg-emerald-500 hover:bg-emerald-400 text-slate-950 rounded-xl text-sm font-bold flex items-center gap-1.5 shadow-lg shadow-emerald-500/20 transition-all disabled:opacity-50"
+            >
+              <Check className="w-4 h-4" />
+              <span>Spremi</span>
+            </button>
+          </div>
         </div>
 
       </div>

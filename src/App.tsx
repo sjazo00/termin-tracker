@@ -67,13 +67,15 @@ export function App() {
   // Handlers
   const handleAddPlayer = async (name: string, nickname?: string) => {
     const newPlayer = await dataService.addPlayer(name, nickname);
-    setPlayers((prev) => [...prev, newPlayer]);
+    const updated = await dataService.getPlayers();
+    setPlayers(updated);
     return newPlayer;
   };
 
   const handleUpdatePlayer = async (id: string, updates: Partial<Player>) => {
     await dataService.updatePlayer(id, updates);
-    setPlayers((prev) => prev.map((p) => (p.id === id ? { ...p, ...updates } : p)));
+    const updated = await dataService.getPlayers();
+    setPlayers(updated);
   };
 
   const handleAddSeason = async (name: string, isCurrent: boolean) => {

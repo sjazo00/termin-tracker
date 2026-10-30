@@ -101,7 +101,7 @@ export const dataService = {
     }
     const players = await dataService.getPlayers();
     const newPlayer: Player = {
-      id: 'p-' + Date.now(),
+      id: 'p-' + Date.now() + '-' + Math.random().toString(36).substring(2, 7),
       name,
       nickname,
       is_active: true,
