@@ -1,7 +1,8 @@
 import { useState, useEffect, useMemo } from 'react';
-import { Navbar } from './components/Navbar';
+import { Navbar, type NavTabType } from './components/Navbar';
 import { DashboardView } from './components/DashboardView';
-import { LeaderboardView } from './components/LeaderboardView';
+import { StatsView } from './components/StatsView';
+import { PlayersView } from './components/PlayersView';
 import { MatchesView } from './components/MatchesView';
 import { AddMatchView } from './components/AddMatchView';
 import { PlayersModal } from './components/PlayersModal';
@@ -11,7 +12,10 @@ import type { Player, Season, Match } from './types';
 import { Loader2 } from 'lucide-react';
 
 export function App() {
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'leaderboard' | 'mvp' | 'matches' | 'add-match'>('dashboard');
+  const [activeTab, setActiveTab] = useState<NavTabType>('dashboard');
+  const [statsMode, setStatsMode] = useState<'goals' | 'mvp' | 'winrate' | 'all'>('goals');
+  const [selectedPlayerId, setSelectedPlayerId] = useState<string | null>(null);
+
   const [players, setPlayers] = useState<Player[]>([]);
   const [seasons, setSeasons] = useState<Season[]>([]);
   const [matches, setMatches] = useState<Match[]>([]);
@@ -103,17 +107,31 @@ export function App() {
     setMatches((prev) => prev.filter((m) => m.id !== id));
   };
 
+  const handleSelectPlayer = (playerId: string) => {
+    setSelectedPlayerId(playerId);
+    setActiveTab('players');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleNavigateFromDashboard = (tab: NavTabType, mode?: string) => {
+    if (mode && (mode === 'goals' || mode === 'mvp' || mode === 'winrate' || mode === 'all')) {
+      setStatsMode(mode as any);
+    }
+    setActiveTab(tab);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   // Find latest match
   const latestMatch = matches.length > 0 ? matches[0] : undefined;
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans">
-      {/* Top Navigation */}
+    <div className="min-h-screen bg-[#070b08] text-slate-100 flex flex-col font-sans selection:bg-emerald-500 selection:text-slate-950">
+      {/* Top Football Navigation */}
       <Navbar
         activeTab={activeTab}
         setActiveTab={setActiveTab}
         onOpenSettings={() => setIsSettingsModalOpen(true)}
-        onOpenPlayers={() => setIsPlayersModalOpen(true)}
+        onOpenPlayersModal={() => setIsPlayersModalOpen(true)}
         isSupabaseConnected={isSupabaseConnected}
       />
 
@@ -121,8 +139,8 @@ export function App() {
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 pt-6 sm:pt-8">
         {loading ? (
           <div className="flex flex-col items-center justify-center min-h-[50vh] gap-3">
-            <Loader2 className="w-8 h-8 text-emerald-400 animate-spin" />
-            <p className="text-slate-400 text-sm">Učitavanje podataka termina...</p>
+            <Loader2 className="w-9 h-9 text-emerald-400 animate-spin" />
+            <p className="text-slate-400 text-sm font-medium">Učitavanje podataka termina...</p>
           </div>
         ) : (
           <>
@@ -133,29 +151,34 @@ export function App() {
                 seasons={seasons}
                 selectedSeasonId={selectedSeasonId}
                 setSelectedSeasonId={setSelectedSeasonId}
-                onNavigateTab={(tab) => setActiveTab(tab)}
+                onNavigateTab={handleNavigateFromDashboard}
                 onOpenSettings={() => setIsSettingsModalOpen(true)}
                 isSupabaseConnected={isSupabaseConnected}
+                onSelectPlayer={handleSelectPlayer}
               />
             )}
 
-            {activeTab === 'leaderboard' && (
-              <LeaderboardView
+            {activeTab === 'stats' && (
+              <StatsView
                 stats={stats}
                 seasons={seasons}
                 selectedSeasonId={selectedSeasonId}
                 setSelectedSeasonId={setSelectedSeasonId}
-                initialMode="goals"
+                initialMode={statsMode}
+                onSelectPlayer={handleSelectPlayer}
               />
             )}
 
-            {activeTab === 'mvp' && (
-              <LeaderboardView
+            {activeTab === 'players' && (
+              <PlayersView
+                players={players}
+                matches={matches}
                 stats={stats}
                 seasons={seasons}
                 selectedSeasonId={selectedSeasonId}
                 setSelectedSeasonId={setSelectedSeasonId}
-                initialMode="mvp"
+                initialSelectedPlayerId={selectedPlayerId}
+                onNavigateToMatch={() => setActiveTab('matches')}
               />
             )}
 
@@ -167,6 +190,7 @@ export function App() {
                 setSelectedSeasonId={setSelectedSeasonId}
                 onDeleteMatch={handleDeleteMatch}
                 adminPin={adminPin}
+                onSelectPlayer={handleSelectPlayer}
               />
             )}
 
@@ -184,12 +208,16 @@ export function App() {
         )}
       </main>
 
-      {/* Footer */}
-      <footer className="border-t border-slate-900 bg-slate-950/80 py-6 text-center text-xs text-slate-500">
+      {/* Football-Themed Footer */}
+      <footer className="border-t-2 border-[#15251b] bg-[#050806] py-6 text-center text-xs text-slate-400 mt-12">
         <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-3">
           <div className="flex items-center gap-2">
-            <span>⚽ Termin 5 na 5 • Zeleni vs Šareni</span>
-            <span>•</span>
+            <span className="font-bold text-white">⚽ Termin 5 na 5</span>
+            <span className="text-slate-600">•</span>
+            <span className="text-emerald-400 font-bold">Zeleni</span>
+            <span className="text-slate-400">vs</span>
+            <span className="text-amber-400 font-bold">Šareni</span>
+            <span className="text-slate-600">•</span>
             <span>Utorak termin</span>
           </div>
           <div className="flex items-center gap-4">
@@ -203,7 +231,7 @@ export function App() {
               onClick={() => setIsPlayersModalOpen(true)}
               className="text-slate-400 hover:text-white transition-colors"
             >
-              Popis Igrača
+              Upravljanje Igračima
             </button>
           </div>
         </div>

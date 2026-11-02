@@ -110,30 +110,30 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-fadeIn">
-      <div className="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-2xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-fadeIn">
+      <div className="bg-[#0f1712] border-2 border-[#1e3828] rounded-3xl w-full max-w-2xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden">
         
         {/* Header */}
-        <div className="p-5 border-b border-slate-800 flex items-center justify-between">
+        <div className="p-5 border-b border-[#1b2f21] flex items-center justify-between bg-[#090e0b]">
           <div>
-            <h3 className="text-xl font-bold text-white">Postavke Aplikacije</h3>
+            <h3 className="text-xl font-black text-white">Postavke Aplikacije</h3>
             <p className="text-xs text-slate-400">Povezivanje baze podataka, sezona i admin PIN-a.</p>
           </div>
           <button
             onClick={onClose}
-            className="p-2 text-slate-400 hover:text-white rounded-xl hover:bg-slate-800 transition-colors"
+            className="p-2 text-slate-400 hover:text-white rounded-xl hover:bg-[#16271c] transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Tab Selection */}
-        <div className="flex border-b border-slate-800 bg-slate-950/50 px-4 text-xs font-semibold">
+        <div className="flex border-b border-[#1b2f21] bg-[#0b130e] px-4 text-xs font-bold overflow-x-auto">
           <button
             onClick={() => setActiveTab('supabase')}
-            className={`py-3 px-3 border-b-2 transition-colors flex items-center gap-1.5 ${
+            className={`py-3 px-3 border-b-2 transition-colors flex items-center gap-1.5 whitespace-nowrap ${
               activeTab === 'supabase'
-                ? 'border-emerald-500 text-emerald-400'
+                ? 'border-emerald-400 text-emerald-400'
                 : 'border-transparent text-slate-400 hover:text-white'
             }`}
           >
@@ -143,9 +143,9 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 
           <button
             onClick={() => setActiveTab('seasons')}
-            className={`py-3 px-3 border-b-2 transition-colors flex items-center gap-1.5 ${
+            className={`py-3 px-3 border-b-2 transition-colors flex items-center gap-1.5 whitespace-nowrap ${
               activeTab === 'seasons'
-                ? 'border-emerald-500 text-emerald-400'
+                ? 'border-emerald-400 text-emerald-400'
                 : 'border-transparent text-slate-400 hover:text-white'
             }`}
           >
@@ -155,9 +155,9 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 
           <button
             onClick={() => setActiveTab('pin')}
-            className={`py-3 px-3 border-b-2 transition-colors flex items-center gap-1.5 ${
+            className={`py-3 px-3 border-b-2 transition-colors flex items-center gap-1.5 whitespace-nowrap ${
               activeTab === 'pin'
-                ? 'border-emerald-500 text-emerald-400'
+                ? 'border-emerald-400 text-emerald-400'
                 : 'border-transparent text-slate-400 hover:text-white'
             }`}
           >
@@ -167,9 +167,9 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 
           <button
             onClick={() => setActiveTab('backup')}
-            className={`py-3 px-3 border-b-2 transition-colors flex items-center gap-1.5 ${
+            className={`py-3 px-3 border-b-2 transition-colors flex items-center gap-1.5 whitespace-nowrap ${
               activeTab === 'backup'
-                ? 'border-emerald-500 text-emerald-400'
+                ? 'border-emerald-400 text-emerald-400'
                 : 'border-transparent text-slate-400 hover:text-white'
             }`}
           >
@@ -188,8 +188,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
               <div
                 className={`p-4 rounded-2xl border flex items-center gap-3.5 ${
                   isSupabaseConnected
-                    ? 'bg-emerald-950/30 border-emerald-800/80 text-emerald-300'
-                    : 'bg-amber-950/30 border-amber-800/80 text-amber-300'
+                    ? 'bg-emerald-950/40 border-emerald-800/80 text-emerald-300'
+                    : 'bg-amber-950/40 border-amber-800/80 text-amber-300'
                 }`}
               >
                 {isSupabaseConnected ? (
@@ -199,14 +199,12 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                 )}
                 <div>
                   <h4 className="font-bold text-sm">
-                    {isSupabaseConnected
-                      ? 'Supabase Cloud Baza je Povezana!'
-                      : 'Aplikacija radi u lokalnom načinu rada (Demo)'}
+                    {isSupabaseConnected ? 'Povezano s Cloud Bazom' : 'Lokalni način (Demo / Offline)'}
                   </h4>
-                  <p className="text-xs opacity-80 mt-0.5">
+                  <p className="text-xs text-slate-400 mt-0.5">
                     {isSupabaseConnected
-                      ? 'Svi podaci se automatski spremaju u cloud i vidljivi su svim igračima na bilo kojem uređaju.'
-                      : 'Unesite podatke vašeg Supabase projekta ispod kako bi se podaci sinkronizirali.'}
+                      ? 'Svi podaci se sinkroniziraju uživo na Supabase serveru i vidljivi su svim igračima.'
+                      : 'Podaci se spremaju u lokalnu memoriju preglednika. Povežite bazu kako bi rezultati bili trajni i javno dostupni ekipi.'}
                   </p>
                 </div>
               </div>
@@ -218,192 +216,189 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                     Supabase Project URL:
                   </label>
                   <input
-                    type="text"
+                    type="url"
                     required
-                    placeholder="https://xxxxxxxx.supabase.co"
+                    placeholder="https://xyzcompany.supabase.co"
                     value={supabaseUrl}
                     onChange={(e) => setSupabaseUrl(e.target.value)}
-                    className="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-white font-mono focus:outline-none focus:border-emerald-500"
+                    className="w-full bg-[#14231a] border border-[#23422e] rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-emerald-500 font-mono"
                   />
                 </div>
 
                 <div>
                   <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">
-                    Supabase Anon / Public Key:
+                    Supabase Anon Key:
                   </label>
                   <input
                     type="password"
                     required
-                    placeholder="eyJhbGciOi..."
+                    placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
                     value={supabaseKey}
                     onChange={(e) => setSupabaseKey(e.target.value)}
-                    className="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-white font-mono focus:outline-none focus:border-emerald-500"
+                    className="w-full bg-[#14231a] border border-[#23422e] rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-emerald-500 font-mono"
                   />
                 </div>
 
-                <div className="flex items-center gap-3 pt-2">
+                <div className="flex gap-3 pt-2">
                   <button
                     type="submit"
-                    className="px-5 py-2.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold rounded-xl text-sm transition-colors shadow-lg shadow-emerald-500/20"
+                    className="flex-1 py-2.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black rounded-xl text-sm transition-colors shadow"
                   >
-                    Spremi i Poveži
+                    Spremi i Poveži Bazu
                   </button>
+
                   {isSupabaseConnected && (
                     <button
                       type="button"
                       onClick={handleClearSupabase}
-                      className="px-4 py-2.5 text-rose-400 hover:bg-rose-950/40 border border-rose-900/60 rounded-xl text-xs font-semibold transition-colors"
+                      className="px-4 py-2.5 bg-[#1b2f22] hover:bg-rose-950/60 text-slate-300 hover:text-rose-400 border border-[#2a4d36] rounded-xl text-sm transition-colors font-bold"
                     >
-                      Ukloni vezu s bazom
+                      Odspoji Bazu
                     </button>
                   )}
                 </div>
               </form>
-
-              {/* Quick instructions */}
-              <div className="bg-slate-950/70 p-4 rounded-2xl border border-slate-800 text-xs text-slate-400 space-y-2">
-                <div className="font-bold text-slate-200 flex items-center gap-1.5">
-                  <HelpCircle className="w-4 h-4 text-emerald-400" />
-                  <span>Kako doći do ovih podataka u 2 minute?</span>
-                </div>
-                <ol className="list-decimal list-inside space-y-1 pl-1">
-                  <li>Prijavite se na <strong>supabase.com</strong> i kreirajte besplatan projekt (npr. "Termin").</li>
-                  <li>Otvorite <strong>SQL Editor</strong> u Supabaseu i pokrenite skriptu iz datoteke <code className="text-emerald-400 font-mono">supabase-schema.sql</code>.</li>
-                  <li>U postavkama projekta (<strong>Settings → API</strong>) kopirajte <strong>Project URL</strong> i <strong>anon/public key</strong>.</li>
-                </ol>
-              </div>
             </div>
           )}
 
           {/* TAB 2: SEASONS */}
           {activeTab === 'seasons' && (
-            <div className="space-y-5">
-              <div>
-                <h4 className="text-sm font-bold text-white mb-1">Upravljanje Sezonama</h4>
-                <p className="text-xs text-slate-400">
-                  Možete kreirati novu sezonu za svaku godinu ili proljetni/jesenski ciklus.
-                </p>
-              </div>
-
-              {/* Add Season */}
-              <form onSubmit={handleCreateSeason} className="flex flex-col sm:flex-row gap-3">
-                <input
-                  type="text"
-                  required
-                  placeholder="Naziv sezone (npr. Sezona 2026/2027)..."
-                  value={newSeasonName}
-                  onChange={(e) => setNewSeasonName(e.target.value)}
-                  className="flex-1 bg-slate-950 border border-slate-700 rounded-xl px-4 py-2 text-sm text-white"
-                />
-                <button
-                  type="submit"
-                  className="px-4 py-2 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs rounded-xl transition-colors flex items-center justify-center gap-1"
-                >
-                  <PlusCircle className="w-4 h-4" />
-                  <span>Kreiraj Sezonu</span>
-                </button>
+            <div className="space-y-6">
+              {/* Create Season Form */}
+              <form onSubmit={handleCreateSeason} className="p-4 bg-[#14231a] border border-[#23422e] rounded-2xl space-y-3">
+                <h4 className="text-xs font-black uppercase text-slate-300 flex items-center gap-1.5">
+                  <PlusCircle className="w-4 h-4 text-emerald-400" />
+                  <span>Kreiraj Novu Sezonu</span>
+                </h4>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    required
+                    placeholder="Naziv sezone (npr. Proljeće 2026)..."
+                    value={newSeasonName}
+                    onChange={(e) => setNewSeasonName(e.target.value)}
+                    className="flex-1 bg-[#0f1712] border border-[#264431] rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-emerald-500"
+                  />
+                  <button
+                    type="submit"
+                    className="px-4 py-2 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black rounded-xl text-xs transition-colors whitespace-nowrap"
+                  >
+                    Kreiraj
+                  </button>
+                </div>
+                <label className="flex items-center gap-2 text-xs text-slate-300 cursor-pointer pt-1">
+                  <input
+                    type="checkbox"
+                    checked={isNewSeasonCurrent}
+                    onChange={(e) => setIsNewSeasonCurrent(e.target.checked)}
+                    className="rounded border-[#264431] text-emerald-500 focus:ring-emerald-500"
+                  />
+                  <span>Postavi kao trenutno aktivnu sezonu</span>
+                </label>
               </form>
 
-              {/* Seasons List */}
-              <div className="divide-y divide-slate-800 border border-slate-800 rounded-2xl bg-slate-950/60 overflow-hidden">
-                {seasons.map((s) => (
-                  <div key={s.id} className="p-3.5 flex items-center justify-between text-sm">
-                    <div className="font-semibold text-white flex items-center gap-2">
-                      <span>{s.name}</span>
-                      {s.is_current && (
-                        <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
-                          Aktivna
-                        </span>
-                      )}
+              {/* Existing Seasons List */}
+              <div>
+                <h4 className="text-xs font-black uppercase text-slate-400 mb-2">
+                  Postojeće Sezone ({seasons.length}):
+                </h4>
+                <div className="divide-y divide-[#1b2f21] border border-[#1e3326] rounded-2xl bg-[#0b130e] overflow-hidden">
+                  {seasons.map((s) => (
+                    <div key={s.id} className="p-3.5 flex items-center justify-between text-sm">
+                      <span className="font-bold text-white flex items-center gap-2">
+                        {s.name}
+                        {s.is_current && (
+                          <span className="text-[10px] font-black bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 px-2 py-0.5 rounded-full">
+                            Aktivna Sezona
+                          </span>
+                        )}
+                      </span>
+                      <span className="text-xs text-slate-500 font-mono">
+                        {s.created_at ? new Date(s.created_at).toLocaleDateString('hr-HR') : ''}
+                      </span>
                     </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
             </div>
           )}
 
           {/* TAB 3: ADMIN PIN */}
           {activeTab === 'pin' && (
-            <div className="space-y-5 max-w-sm">
-              <div>
-                <h4 className="text-sm font-bold text-white mb-1">Promjena Admin PIN-a</h4>
-                <p className="text-xs text-slate-400">
-                  PIN sprječava neovlašteni unos rezultata ili brisanje utakmica.
+            <div className="space-y-4">
+              <div className="bg-[#14231a] border border-[#23422e] p-4 rounded-2xl">
+                <h4 className="text-sm font-black text-white">Promjena Administratorskog PIN-a</h4>
+                <p className="text-xs text-slate-400 mt-1">
+                  PIN kod je potreban za unos nove utakmice, brisanje utakmica i uređivanje popisa igrača.
                 </p>
               </div>
 
               <form onSubmit={handleChangePin} className="space-y-3">
                 <div>
-                  <label className="block text-xs text-slate-300 font-semibold mb-1">
+                  <label className="block text-xs font-bold text-slate-300 mb-1">
                     Trenutni PIN:
                   </label>
                   <input
                     type="password"
                     required
-                    placeholder="Trenutni PIN"
                     value={currentPinInput}
                     onChange={(e) => setCurrentPinInput(e.target.value)}
-                    className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white font-mono"
+                    placeholder="Unesite trenutni PIN (zadano: 1234)"
+                    className="w-full bg-[#14231a] border border-[#23422e] rounded-xl px-3.5 py-2 text-sm text-white focus:outline-none focus:border-emerald-500"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs text-slate-300 font-semibold mb-1">
-                    Novi PIN (min. 4 znamenke):
+                  <label className="block text-xs font-bold text-slate-300 mb-1">
+                    Novi PIN (minimalno 4 znamenke):
                   </label>
                   <input
                     type="password"
                     required
-                    placeholder="Novi PIN"
                     value={newPinInput}
                     onChange={(e) => setNewPinInput(e.target.value)}
-                    className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white font-mono"
+                    placeholder="Unesite novi PIN"
+                    className="w-full bg-[#14231a] border border-[#23422e] rounded-xl px-3.5 py-2 text-sm text-white focus:outline-none focus:border-emerald-500"
                   />
                 </div>
 
                 <button
                   type="submit"
-                  className="w-full py-2.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold rounded-xl text-xs transition-colors"
+                  className="w-full py-2.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black rounded-xl text-sm transition-colors mt-2"
                 >
-                  Promijeni PIN
+                  Spremi Novi PIN
                 </button>
               </form>
             </div>
           )}
 
-          {/* TAB 4: BACKUP & RESTORE */}
+          {/* TAB 4: BACKUP */}
           {activeTab === 'backup' && (
             <div className="space-y-4">
-              <div>
-                <h4 className="text-sm font-bold text-white mb-1">Sigurnosna Kopija Podataka</h4>
-                <p className="text-xs text-slate-400">
-                  Preuzmite kompletnu kopiju svih igrača, sezona i utakmica u JSON formatu na svoje računalo.
+              <div className="bg-[#14231a] border border-[#23422e] p-4 rounded-2xl">
+                <h4 className="text-sm font-black text-white">Lokalni Backup Podataka</h4>
+                <p className="text-xs text-slate-400 mt-1">
+                  Možete preuzeti JSON sigurnosnu kopiju svih lokalno unesenih utakmica, igrača i sezona.
                 </p>
               </div>
 
-              <div className="p-4 bg-slate-950/60 border border-slate-800 rounded-2xl flex items-center justify-between">
-                <div>
-                  <div className="font-semibold text-white text-sm">JSON Export</div>
-                  <div className="text-xs text-slate-400">Preuzimanje lokalne arhive</div>
-                </div>
-                <button
-                  onClick={handleExportBackup}
-                  className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs rounded-xl transition-colors flex items-center gap-1.5 border border-slate-700"
-                >
-                  <Download className="w-4 h-4 text-emerald-400" />
-                  <span>Preuzmi Backup</span>
-                </button>
-              </div>
+              <button
+                onClick={handleExportBackup}
+                className="w-full py-3 bg-[#182e20] hover:bg-[#203e2b] border border-[#2b5239] text-white font-bold rounded-xl text-sm transition-colors flex items-center justify-center gap-2"
+              >
+                <Download className="w-4 h-4 text-emerald-400" />
+                <span>Preuzmi Sigurnosnu Kopiju (JSON)</span>
+              </button>
             </div>
           )}
 
         </div>
 
         {/* Footer */}
-        <div className="p-4 bg-slate-950/80 border-t border-slate-800 flex justify-end">
+        <div className="p-4 border-t border-[#1b2f21] bg-[#090e0b] flex justify-end">
           <button
             onClick={onClose}
-            className="px-5 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-sm font-semibold transition-colors"
+            className="px-5 py-2 bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs rounded-xl transition-colors"
           >
             Zatvori
           </button>

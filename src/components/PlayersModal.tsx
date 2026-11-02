@@ -104,38 +104,38 @@ export const PlayersModal: React.FC<PlayersModalProps> = ({
   });
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-fadeIn">
-      <div className="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-2xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-fadeIn">
+      <div className="bg-[#0f1712] border-2 border-[#1e3828] rounded-3xl w-full max-w-2xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden">
         
         {/* Modal Header */}
-        <div className="p-5 border-b border-slate-800 flex items-center justify-between">
+        <div className="p-5 border-b border-[#1b2f21] flex items-center justify-between bg-[#090e0b]">
           <div>
-            <h3 className="text-xl font-bold text-white">Popis Igrača ({players.length})</h3>
-            <p className="text-xs text-slate-400">Dodavanje i uređivanje igrača u ekipi.</p>
+            <h3 className="text-xl font-black text-white">Upravljanje Igračima ({players.length})</h3>
+            <p className="text-xs text-slate-400">Dodavanje, izmjena i aktivacija igrača u ekipi.</p>
           </div>
           <button
             onClick={onClose}
-            className="p-2 text-slate-400 hover:text-white rounded-xl hover:bg-slate-800 transition-colors"
+            className="p-2 text-slate-400 hover:text-white rounded-xl hover:bg-[#16271c] transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
-        {/* Add Player Form (Only Name, supports multiple with commas) */}
-        <div className="p-5 bg-slate-950/40 border-b border-slate-800">
+        {/* Add Player Form */}
+        <div className="p-5 bg-[#0b130e] border-b border-[#1b2f21]">
           <form onSubmit={handleAdd} className="flex gap-2">
             <input
               type="text"
               required
-              placeholder="Ime igrača (npr. Mario ili Marko, Ivan, Luka)..."
+              placeholder="Ime novog igrača (npr. Mario ili Marko, Ivan, Luka)..."
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="flex-1 bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-emerald-500 placeholder-slate-500"
+              className="flex-1 bg-[#14231a] border border-[#23422e] rounded-xl px-3.5 py-2 text-sm text-white focus:outline-none focus:border-emerald-500 placeholder-slate-500"
             />
             <button
               type="submit"
               disabled={isSubmitting}
-              className="px-5 py-2 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-sm rounded-xl transition-colors flex items-center justify-center gap-1.5 whitespace-nowrap shadow-sm disabled:opacity-50"
+              className="px-5 py-2 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-sm rounded-xl transition-colors flex items-center justify-center gap-1.5 whitespace-nowrap shadow-md disabled:opacity-50"
             >
               <UserPlus className="w-4 h-4" />
               <span>Dodaj</span>
@@ -144,7 +144,7 @@ export const PlayersModal: React.FC<PlayersModalProps> = ({
         </div>
 
         {/* Search */}
-        <div className="p-4 border-b border-slate-800/80">
+        <div className="p-4 border-b border-[#1b2f21] bg-[#0d1610]">
           <div className="relative">
             <Search className="w-4 h-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
             <input
@@ -152,74 +152,79 @@ export const PlayersModal: React.FC<PlayersModalProps> = ({
               placeholder="Pretraži popis igrača..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-9 pr-3 py-2 text-xs bg-slate-950 border border-slate-800 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500"
+              className="w-full pl-9 pr-3 py-2 text-xs bg-[#14231a] border border-[#23422e] rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500"
             />
           </div>
         </div>
 
         {/* Players List */}
-        <div className="p-5 overflow-y-auto divide-y divide-slate-800/60 flex-1">
+        <div className="p-5 overflow-y-auto flex-1 divide-y divide-[#18291d] max-h-[380px]">
           {filtered.length === 0 ? (
-            <p className="text-center text-slate-500 text-sm py-8">Nema igrača po tom kriteriju.</p>
+            <p className="text-center text-slate-500 text-xs py-8">Nema pronađenih igrača.</p>
           ) : (
             filtered.map((player) => (
               <div
                 key={player.id}
-                className="py-3 flex items-center justify-between gap-3 hover:bg-slate-800/30 px-2 rounded-xl transition-colors"
+                className="py-3 flex items-center justify-between gap-3 hover:bg-[#132017] px-2 rounded-xl transition-colors"
               >
                 {editingId === player.id ? (
-                  <div className="flex-1 flex items-center gap-2">
+                  <div className="flex-1 flex gap-2">
                     <input
                       type="text"
                       value={editName}
                       onChange={(e) => setEditName(e.target.value)}
-                      className="bg-slate-950 border border-slate-600 px-2.5 py-1.5 rounded-lg text-sm text-white flex-1 focus:outline-none focus:border-emerald-500"
+                      className="flex-1 bg-[#14231a] border border-emerald-500/80 rounded-lg px-2.5 py-1 text-xs text-white focus:outline-none"
                       autoFocus
                     />
                     <button
-                      type="button"
                       onClick={() => handleSaveEdit(player.id)}
-                      className="p-2 bg-emerald-500 hover:bg-emerald-400 text-slate-950 rounded-lg font-bold transition-colors"
-                      title="Spremi"
+                      className="px-3 py-1 bg-emerald-500 text-slate-950 font-bold rounded-lg text-xs"
                     >
-                      <Check className="w-4 h-4" />
+                      Spremi
                     </button>
                     <button
-                      type="button"
                       onClick={() => setEditingId(null)}
-                      className="p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors"
-                      title="Odustani"
+                      className="px-2 py-1 text-slate-400 hover:text-white text-xs"
                     >
-                      <X className="w-4 h-4" />
+                      Odustani
                     </button>
                   </div>
                 ) : (
                   <>
-                    <div className="flex items-center gap-2.5">
-                      <div className="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center font-bold text-xs text-slate-300">
-                        {player.name.substring(0, 1).toUpperCase()}
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-full bg-[#182d20] border border-[#264431] flex items-center justify-center font-bold text-xs text-emerald-400">
+                        {player.name.charAt(0).toUpperCase()}
                       </div>
-                      <div className="font-bold text-sm text-white">{player.name}</div>
+                      <div>
+                        <div className="font-bold text-sm text-white flex items-center gap-2">
+                          <span>{player.name}</span>
+                          {!player.is_active && (
+                            <span className="text-[10px] bg-slate-800 text-slate-500 px-1.5 py-0.2 rounded">
+                              Neaktivan
+                            </span>
+                          )}
+                        </div>
+                      </div>
                     </div>
 
                     <div className="flex items-center gap-2">
                       <button
-                        onClick={() => handleToggleActive(player)}
-                        className={`text-xs px-2.5 py-1 rounded-lg font-medium transition-colors ${
-                          player.is_active
-                            ? 'bg-emerald-950/60 text-emerald-400 border border-emerald-800/60'
-                            : 'bg-slate-800 text-slate-500 border border-slate-700'
-                        }`}
-                      >
-                        {player.is_active ? 'Aktivan' : 'Neaktivan'}
-                      </button>
-
-                      <button
                         onClick={() => handleStartEdit(player)}
-                        className="p-1.5 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors"
+                        className="p-1.5 text-slate-400 hover:text-white hover:bg-[#1b2f22] rounded-lg transition-colors"
                         title="Uredi ime"
                       >
                         <Edit2 className="w-3.5 h-3.5" />
+                      </button>
+
+                      <button
+                        onClick={() => handleToggleActive(player)}
+                        className={`text-xs px-2.5 py-1 rounded-lg font-bold transition-colors ${
+                          player.is_active
+                            ? 'bg-emerald-950/60 text-emerald-400 border border-emerald-800/80 hover:bg-emerald-900/60'
+                            : 'bg-slate-800 text-slate-400 hover:bg-slate-700'
+                        }`}
+                      >
+                        {player.is_active ? 'Aktivan' : 'Aktiviraj'}
                       </button>
                     </div>
                   </>
@@ -229,27 +234,19 @@ export const PlayersModal: React.FC<PlayersModalProps> = ({
           )}
         </div>
 
-        {/* Modal Footer with "Spremi" and "Zatvori" */}
-        <div className="p-4 bg-slate-950/80 border-t border-slate-800 flex items-center justify-between">
-          <div className="text-xs text-slate-400">
-            Ukupno: <span className="font-semibold text-white">{players.length}</span> igrača
-          </div>
+        {/* Modal Footer */}
+        <div className="p-4 border-t border-[#1b2f21] bg-[#090e0b] flex items-center justify-between">
+          <span className="text-[11px] text-slate-500">
+            * Neaktivni igrači se ne prikazuju u brzim odabirima
+          </span>
           <div className="flex items-center gap-2">
             <button
-              type="button"
-              onClick={onClose}
-              className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white rounded-xl text-sm font-semibold transition-colors"
-            >
-              Zatvori
-            </button>
-            <button
-              type="button"
               onClick={handleSaveAndClose}
               disabled={isSubmitting}
-              className="px-5 py-2 bg-emerald-500 hover:bg-emerald-400 text-slate-950 rounded-xl text-sm font-bold flex items-center gap-1.5 shadow-lg shadow-emerald-500/20 transition-all disabled:opacity-50"
+              className="px-5 py-2 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs rounded-xl transition-colors shadow flex items-center gap-1.5 disabled:opacity-50"
             >
-              <Check className="w-4 h-4" />
-              <span>Spremi</span>
+              <Check className="w-3.5 h-3.5" />
+              <span>Spremi & Zatvori</span>
             </button>
           </div>
         </div>
