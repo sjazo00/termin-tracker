@@ -18,11 +18,24 @@ interface AddMatchViewProps {
   seasons: Season[];
   onAddMatch: (
     matchData: Omit<Match, 'id' | 'created_at' | 'match_players' | 'mvp_player' | 'season'>,
-    playersData: Array<{ player_id: string; team: 'zeleni' | 'sareni'; goals: number }>
+    playersData: Array<{
+      player_id: string;
+      team: 'zeleni' | 'sareni';
+      goals: number;
+      penalty_goals?: number;
+      own_goals?: number;
+    }>
   ) => Promise<void>;
   onAddPlayer: (name: string) => Promise<Player>;
   onMatchSaved: () => void;
   adminPin: string;
+}
+
+interface LineupPlayer {
+  playerId: string;
+  regularGoals: number; // Golovi iz igre
+  penaltyGoals: number; // Golovi iz penala
+  ownGoals: number; // Autogolovi (pribrajaju se protivničkoj ekipi)
 }
 
 export const AddMatchView: React.FC<AddMatchViewProps> = ({
@@ -45,9 +58,9 @@ export const AddMatchView: React.FC<AddMatchViewProps> = ({
   const [notes, setNotes] = useState('');
   const [mvpPlayerId, setMvpPlayerId] = useState('');
 
-  // Lineups
-  const [zeleniLineup, setZeleniLineup] = useState<Array<{ playerId: string; goals: number }>>([]);
-  const [sareniLineup, setSareniLineup] = useState<Array<{ playerId: string; goals: number }>>([]);
+  // Lineups with regular goals, penalties, and own goals
+  const [zeleniLineup, setZeleniLineup] = useState<LineupPlayer[]>([]);
+  const [sareniLineup, setSareniLineup] = useState<LineupPlayer[]>([]);
 
   // Manual score overrides
   const [manualZeleniScore, setManualZeleniScore] = useState<number | null>(null);
@@ -68,9 +81,22 @@ export const AddMatchView: React.FC<AddMatchViewProps> = ({
     }
   };
 
-  // Calculate scores
-  const calculatedZeleniScore = zeleniLineup.reduce((acc, p) => acc + p.goals, 0);
-  const calculatedSareniScore = sareniLineup.reduce((acc, p) => acc + p.goals, 0);
+  // Calculate scores:
+  // Zeleni score = Zeleni scored (regular + penalty) + Šareni own goals
+  const zeleniTeamScored = zeleniLineup.reduce(
+    (acc, p) => acc + p.regularGoals + p.penaltyGoals,
+    0
+  );
+  const sareniOwnGoalsToZeleni = sareniLineup.reduce((acc, p) => acc + p.ownGoals, 0);
+  const calculatedZeleniScore = zeleniTeamScored + sareniOwnGoalsToZeleni;
+
+  // Šareni score = Šareni scored (regular + penalty) + Zeleni own goals
+  const sareniTeamScored = sareniLineup.reduce(
+    (acc, p) => acc + p.regularGoals + p.penaltyGoals,
+    0
+  );
+  const zeleniOwnGoalsToSareni = zeleniLineup.reduce((acc, p) => acc + p.ownGoals, 0);
+  const calculatedSareniScore = sareniTeamScored + zeleniOwnGoalsToSareni;
 
   const finalZeleniScore = manualZeleniScore !== null ? manualZeleniScore : calculatedZeleniScore;
   const finalSareniScore = manualSareniScore !== null ? manualSareniScore : calculatedSareniScore;
@@ -85,10 +111,16 @@ export const AddMatchView: React.FC<AddMatchViewProps> = ({
   );
 
   const assignPlayer = (playerId: string, team: 'zeleni' | 'sareni') => {
+    const newItem: LineupPlayer = {
+      playerId,
+      regularGoals: 0,
+      penaltyGoals: 0,
+      ownGoals: 0,
+    };
     if (team === 'zeleni') {
-      setZeleniLineup((prev) => [...prev, { playerId, goals: 0 }]);
+      setZeleniLineup((prev) => [...prev, newItem]);
     } else {
-      setSareniLineup((prev) => [...prev, { playerId, goals: 0 }]);
+      setSareniLineup((prev) => [...prev, newItem]);
     }
   };
 
@@ -103,20 +135,37 @@ export const AddMatchView: React.FC<AddMatchViewProps> = ({
     }
   };
 
-  const updateGoals = (playerId: string, team: 'zeleni' | 'sareni', delta: number) => {
-    if (team === 'zeleni') {
-      setZeleniLineup((prev) =>
-        prev.map((p) =>
-          p.playerId === playerId ? { ...p, goals: Math.max(0, p.goals + delta) } : p
-        )
+  const updateRegularGoals = (playerId: string, team: 'zeleni' | 'sareni', delta: number) => {
+    const updater = (list: LineupPlayer[]) =>
+      list.map((p) =>
+        p.playerId === playerId
+          ? { ...p, regularGoals: Math.max(0, p.regularGoals + delta) }
+          : p
       );
-    } else {
-      setSareniLineup((prev) =>
-        prev.map((p) =>
-          p.playerId === playerId ? { ...p, goals: Math.max(0, p.goals + delta) } : p
-        )
+    if (team === 'zeleni') setZeleniLineup(updater);
+    else setSareniLineup(updater);
+  };
+
+  const updatePenaltyGoals = (playerId: string, team: 'zeleni' | 'sareni', delta: number) => {
+    const updater = (list: LineupPlayer[]) =>
+      list.map((p) =>
+        p.playerId === playerId
+          ? { ...p, penaltyGoals: Math.max(0, p.penaltyGoals + delta) }
+          : p
       );
-    }
+    if (team === 'zeleni') setZeleniLineup(updater);
+    else setSareniLineup(updater);
+  };
+
+  const updateOwnGoals = (playerId: string, team: 'zeleni' | 'sareni', delta: number) => {
+    const updater = (list: LineupPlayer[]) =>
+      list.map((p) =>
+        p.playerId === playerId
+          ? { ...p, ownGoals: Math.max(0, p.ownGoals + delta) }
+          : p
+      );
+    if (team === 'zeleni') setZeleniLineup(updater);
+    else setSareniLineup(updater);
   };
 
   const handleQuickAddPlayer = async (e: React.FormEvent) => {
@@ -156,9 +205,27 @@ export const AddMatchView: React.FC<AddMatchViewProps> = ({
         notes: notes.trim() || null,
       };
 
-      const playersData: Array<{ player_id: string; team: 'zeleni' | 'sareni'; goals: number }> = [
-        ...zeleniLineup.map((p) => ({ player_id: p.playerId, team: 'zeleni' as const, goals: p.goals })),
-        ...sareniLineup.map((p) => ({ player_id: p.playerId, team: 'sareni' as const, goals: p.goals })),
+      const playersData: Array<{
+        player_id: string;
+        team: 'zeleni' | 'sareni';
+        goals: number;
+        penalty_goals: number;
+        own_goals: number;
+      }> = [
+        ...zeleniLineup.map((p) => ({
+          player_id: p.playerId,
+          team: 'zeleni' as const,
+          goals: p.regularGoals + p.penaltyGoals,
+          penalty_goals: p.penaltyGoals,
+          own_goals: p.ownGoals,
+        })),
+        ...sareniLineup.map((p) => ({
+          player_id: p.playerId,
+          team: 'sareni' as const,
+          goals: p.regularGoals + p.penaltyGoals,
+          penalty_goals: p.penaltyGoals,
+          own_goals: p.ownGoals,
+        })),
       ];
 
       await onAddMatch(matchData, playersData);
@@ -414,7 +481,16 @@ export const AddMatchView: React.FC<AddMatchViewProps> = ({
                 <span className="w-3 h-3 rounded-full bg-emerald-500"></span>
                 <h3 className="font-black text-lg text-emerald-400">Zeleni ({zeleniLineup.length})</h3>
               </div>
-              <span className="text-xs font-mono font-bold text-emerald-300">Golovi: {calculatedZeleniScore}</span>
+              <div className="text-right">
+                <span className="text-sm font-mono font-black text-emerald-300">
+                  Ukupno: {calculatedZeleniScore} {calculatedZeleniScore === 1 ? 'gol' : 'golova'}
+                </span>
+                {sareniOwnGoalsToZeleni > 0 && (
+                  <div className="text-[10px] text-emerald-400 font-bold">
+                    ({zeleniTeamScored} dali + {sareniOwnGoalsToZeleni} autogol Šarenih)
+                  </div>
+                )}
+              </div>
             </div>
 
             {zeleniLineup.length === 0 ? (
@@ -422,48 +498,127 @@ export const AddMatchView: React.FC<AddMatchViewProps> = ({
                 Dodajte igrače iz gornjeg popisa dostupnih igrača.
               </p>
             ) : (
-              <div className="space-y-2">
+              <div className="space-y-3">
                 {zeleniLineup.map((item) => {
                   const p = players.find((x) => x.id === item.playerId);
                   if (!p) return null;
+                  const totalPlayerGoals = item.regularGoals + item.penaltyGoals;
+
                   return (
                     <div
                       key={item.playerId}
-                      className="bg-[#0d1610] border border-[#1e3425] rounded-xl p-3 flex items-center justify-between gap-2"
+                      className="bg-[#0d1610] border border-[#1e3425] rounded-2xl p-3 space-y-2 shadow-sm"
                     >
-                      <div className="font-bold text-sm text-white">{p.name}</div>
-
-                      <div className="flex items-center gap-2">
-                        {/* Goal counter controls */}
-                        <div className="flex items-center bg-[#14231a] border border-[#23422e] rounded-lg p-1">
-                          <button
-                            type="button"
-                            onClick={() => updateGoals(item.playerId, 'zeleni', -1)}
-                            className="w-7 h-7 rounded bg-[#1e3425] text-slate-300 hover:text-white font-black flex items-center justify-center transition-colors text-sm"
-                          >
-                            -
-                          </button>
-                          <span className="w-8 text-center font-mono font-black text-emerald-400 text-base">
-                            {item.goals}
-                          </span>
-                          <button
-                            type="button"
-                            onClick={() => updateGoals(item.playerId, 'zeleni', 1)}
-                            className="w-7 h-7 rounded bg-emerald-600 text-white font-black flex items-center justify-center hover:bg-emerald-500 transition-colors text-sm"
-                          >
-                            +
-                          </button>
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="font-bold text-sm text-white">{p.name}</span>
+                          {totalPlayerGoals > 0 && (
+                            <span className="text-[11px] font-mono font-bold bg-emerald-950/90 border border-emerald-600/60 text-emerald-300 px-2 py-0.5 rounded-md">
+                              ⚽ {totalPlayerGoals} {item.penaltyGoals > 0 ? `(${item.penaltyGoals}p)` : ''}
+                            </span>
+                          )}
+                          {item.ownGoals > 0 && (
+                            <span
+                              className="text-[11px] font-mono font-bold bg-rose-950/90 border border-rose-600/60 text-rose-300 px-2 py-0.5 rounded-md"
+                              title="Autogol pribrojen Šarenima"
+                            >
+                              ⚠️ {item.ownGoals} AG (za Šarene)
+                            </span>
+                          )}
                         </div>
 
-                        {/* Remove button */}
                         <button
                           type="button"
                           onClick={() => removePlayer(item.playerId, 'zeleni')}
-                          className="p-1.5 text-slate-500 hover:text-rose-400 rounded-lg"
+                          className="p-1.5 text-slate-500 hover:text-rose-400 rounded-lg transition-colors"
                           title="Ukloni iz ekipe"
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
+                      </div>
+
+                      {/* 3 Goal Counters: Gol iz igre, Penal, Autogol */}
+                      <div className="grid grid-cols-3 gap-1.5 pt-1 border-t border-[#192b1f]">
+                        {/* Gol iz igre */}
+                        <div className="bg-[#121c15] border border-[#213b29] rounded-xl p-1.5 flex flex-col items-center">
+                          <span className="text-[10px] text-slate-300 font-bold mb-1">
+                            ⚽ Iz igre
+                          </span>
+                          <div className="flex items-center justify-between w-full px-1">
+                            <button
+                              type="button"
+                              onClick={() => updateRegularGoals(item.playerId, 'zeleni', -1)}
+                              className="w-6 h-6 rounded bg-[#1c3123] text-slate-300 hover:text-white font-black flex items-center justify-center text-xs"
+                            >
+                              -
+                            </button>
+                            <span className="font-mono font-black text-white text-sm">
+                              {item.regularGoals}
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => updateRegularGoals(item.playerId, 'zeleni', 1)}
+                              className="w-6 h-6 rounded bg-emerald-600 hover:bg-emerald-500 text-white font-black flex items-center justify-center text-xs"
+                            >
+                              +
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Iz penala */}
+                        <div className="bg-[#121c15] border border-[#213b29] rounded-xl p-1.5 flex flex-col items-center">
+                          <span className="text-[10px] text-amber-300 font-bold mb-1">
+                            🎯 Penal
+                          </span>
+                          <div className="flex items-center justify-between w-full px-1">
+                            <button
+                              type="button"
+                              onClick={() => updatePenaltyGoals(item.playerId, 'zeleni', -1)}
+                              className="w-6 h-6 rounded bg-[#1c3123] text-slate-300 hover:text-white font-black flex items-center justify-center text-xs"
+                            >
+                              -
+                            </button>
+                            <span className="font-mono font-black text-amber-300 text-sm">
+                              {item.penaltyGoals}
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => updatePenaltyGoals(item.playerId, 'zeleni', 1)}
+                              className="w-6 h-6 rounded bg-amber-600 hover:bg-amber-500 text-slate-950 font-black flex items-center justify-center text-xs"
+                            >
+                              +
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Autogol (za Šarene) */}
+                        <div className="bg-[#181112] border border-rose-900/60 rounded-xl p-1.5 flex flex-col items-center">
+                          <span
+                            className="text-[10px] text-rose-300 font-bold mb-1"
+                            title="Autogol se dodaje ekipi Šareni"
+                          >
+                            ⚠️ Autogol
+                          </span>
+                          <div className="flex items-center justify-between w-full px-1">
+                            <button
+                              type="button"
+                              onClick={() => updateOwnGoals(item.playerId, 'zeleni', -1)}
+                              className="w-6 h-6 rounded bg-[#2b181a] text-slate-300 hover:text-white font-black flex items-center justify-center text-xs"
+                            >
+                              -
+                            </button>
+                            <span className="font-mono font-black text-rose-400 text-sm">
+                              {item.ownGoals}
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => updateOwnGoals(item.playerId, 'zeleni', 1)}
+                              className="w-6 h-6 rounded bg-rose-600 hover:bg-rose-500 text-white font-black flex items-center justify-center text-xs"
+                            >
+                              +
+                            </button>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   );
@@ -479,7 +634,16 @@ export const AddMatchView: React.FC<AddMatchViewProps> = ({
                 <span className="w-3 h-3 rounded-full bg-amber-400"></span>
                 <h3 className="font-black text-lg text-amber-400">Šareni ({sareniLineup.length})</h3>
               </div>
-              <span className="text-xs font-mono font-bold text-amber-300">Golovi: {calculatedSareniScore}</span>
+              <div className="text-right">
+                <span className="text-sm font-mono font-black text-amber-300">
+                  Ukupno: {calculatedSareniScore} {calculatedSareniScore === 1 ? 'gol' : 'golova'}
+                </span>
+                {zeleniOwnGoalsToSareni > 0 && (
+                  <div className="text-[10px] text-amber-400 font-bold">
+                    ({sareniTeamScored} dali + {zeleniOwnGoalsToSareni} autogol Zelenih)
+                  </div>
+                )}
+              </div>
             </div>
 
             {sareniLineup.length === 0 ? (
@@ -487,48 +651,127 @@ export const AddMatchView: React.FC<AddMatchViewProps> = ({
                 Dodajte igrače iz gornjeg popisa dostupnih igrača.
               </p>
             ) : (
-              <div className="space-y-2">
+              <div className="space-y-3">
                 {sareniLineup.map((item) => {
                   const p = players.find((x) => x.id === item.playerId);
                   if (!p) return null;
+                  const totalPlayerGoals = item.regularGoals + item.penaltyGoals;
+
                   return (
                     <div
                       key={item.playerId}
-                      className="bg-[#0d1610] border border-[#1e3425] rounded-xl p-3 flex items-center justify-between gap-2"
+                      className="bg-[#0d1610] border border-[#1e3425] rounded-2xl p-3 space-y-2 shadow-sm"
                     >
-                      <div className="font-bold text-sm text-white">{p.name}</div>
-
-                      <div className="flex items-center gap-2">
-                        {/* Goal counter controls */}
-                        <div className="flex items-center bg-[#14231a] border border-[#23422e] rounded-lg p-1">
-                          <button
-                            type="button"
-                            onClick={() => updateGoals(item.playerId, 'sareni', -1)}
-                            className="w-7 h-7 rounded bg-[#1e3425] text-slate-300 hover:text-white font-black flex items-center justify-center transition-colors text-sm"
-                          >
-                            -
-                          </button>
-                          <span className="w-8 text-center font-mono font-black text-amber-400 text-base">
-                            {item.goals}
-                          </span>
-                          <button
-                            type="button"
-                            onClick={() => updateGoals(item.playerId, 'sareni', 1)}
-                            className="w-7 h-7 rounded bg-amber-600 text-white font-black flex items-center justify-center hover:bg-amber-500 transition-colors text-sm"
-                          >
-                            +
-                          </button>
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="font-bold text-sm text-white">{p.name}</span>
+                          {totalPlayerGoals > 0 && (
+                            <span className="text-[11px] font-mono font-bold bg-amber-950/90 border border-amber-600/60 text-amber-300 px-2 py-0.5 rounded-md">
+                              ⚽ {totalPlayerGoals} {item.penaltyGoals > 0 ? `(${item.penaltyGoals}p)` : ''}
+                            </span>
+                          )}
+                          {item.ownGoals > 0 && (
+                            <span
+                              className="text-[11px] font-mono font-bold bg-rose-950/90 border border-rose-600/60 text-rose-300 px-2 py-0.5 rounded-md"
+                              title="Autogol pribrojen Zelenima"
+                            >
+                              ⚠️ {item.ownGoals} AG (za Zelene)
+                            </span>
+                          )}
                         </div>
 
-                        {/* Remove button */}
                         <button
                           type="button"
                           onClick={() => removePlayer(item.playerId, 'sareni')}
-                          className="p-1.5 text-slate-500 hover:text-rose-400 rounded-lg"
+                          className="p-1.5 text-slate-500 hover:text-rose-400 rounded-lg transition-colors"
                           title="Ukloni iz ekipe"
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
+                      </div>
+
+                      {/* 3 Goal Counters: Gol iz igre, Penal, Autogol */}
+                      <div className="grid grid-cols-3 gap-1.5 pt-1 border-t border-[#192b1f]">
+                        {/* Gol iz igre */}
+                        <div className="bg-[#121c15] border border-[#213b29] rounded-xl p-1.5 flex flex-col items-center">
+                          <span className="text-[10px] text-slate-300 font-bold mb-1">
+                            ⚽ Iz igre
+                          </span>
+                          <div className="flex items-center justify-between w-full px-1">
+                            <button
+                              type="button"
+                              onClick={() => updateRegularGoals(item.playerId, 'sareni', -1)}
+                              className="w-6 h-6 rounded bg-[#1c3123] text-slate-300 hover:text-white font-black flex items-center justify-center text-xs"
+                            >
+                              -
+                            </button>
+                            <span className="font-mono font-black text-white text-sm">
+                              {item.regularGoals}
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => updateRegularGoals(item.playerId, 'sareni', 1)}
+                              className="w-6 h-6 rounded bg-amber-600 hover:bg-amber-500 text-slate-950 font-black flex items-center justify-center text-xs"
+                            >
+                              +
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Iz penala */}
+                        <div className="bg-[#121c15] border border-[#213b29] rounded-xl p-1.5 flex flex-col items-center">
+                          <span className="text-[10px] text-amber-300 font-bold mb-1">
+                            🎯 Penal
+                          </span>
+                          <div className="flex items-center justify-between w-full px-1">
+                            <button
+                              type="button"
+                              onClick={() => updatePenaltyGoals(item.playerId, 'sareni', -1)}
+                              className="w-6 h-6 rounded bg-[#1c3123] text-slate-300 hover:text-white font-black flex items-center justify-center text-xs"
+                            >
+                              -
+                            </button>
+                            <span className="font-mono font-black text-amber-300 text-sm">
+                              {item.penaltyGoals}
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => updatePenaltyGoals(item.playerId, 'sareni', 1)}
+                              className="w-6 h-6 rounded bg-amber-600 hover:bg-amber-500 text-slate-950 font-black flex items-center justify-center text-xs"
+                            >
+                              +
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Autogol (za Zelene) */}
+                        <div className="bg-[#181112] border border-rose-900/60 rounded-xl p-1.5 flex flex-col items-center">
+                          <span
+                            className="text-[10px] text-rose-300 font-bold mb-1"
+                            title="Autogol se dodaje ekipi Zeleni"
+                          >
+                            ⚠️ Autogol
+                          </span>
+                          <div className="flex items-center justify-between w-full px-1">
+                            <button
+                              type="button"
+                              onClick={() => updateOwnGoals(item.playerId, 'sareni', -1)}
+                              className="w-6 h-6 rounded bg-[#2b181a] text-slate-300 hover:text-white font-black flex items-center justify-center text-xs"
+                            >
+                              -
+                            </button>
+                            <span className="font-mono font-black text-rose-400 text-sm">
+                              {item.ownGoals}
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => updateOwnGoals(item.playerId, 'sareni', 1)}
+                              className="w-6 h-6 rounded bg-rose-600 hover:bg-rose-500 text-white font-black flex items-center justify-center text-xs"
+                            >
+                              +
+                            </button>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   );
@@ -553,7 +796,7 @@ export const AddMatchView: React.FC<AddMatchViewProps> = ({
               onChange={(e) => setMvpPlayerId(e.target.value)}
               className="w-full bg-[#14231a] border border-[#23422e] rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-purple-500"
             >
-              <option value="">-- Odaberite MVP igrača --</option>
+              <option value="">🗳️ Odredi putem MVP ankete (Nakon termina)</option>
               {allMatchPlayers.map((p) => {
                 const isZ = zeleniLineup.some((z) => z.playerId === p.id);
                 return (
@@ -563,8 +806,8 @@ export const AddMatchView: React.FC<AddMatchViewProps> = ({
                 );
               })}
             </select>
-            <p className="text-[11px] text-slate-500 mt-1">
-              * Odabire se s popisa igrača koji su nastupili u ovoj utakmici.
+            <p className="text-[11px] text-slate-400 mt-1.5">
+              Možete ostaviti prazno i dopustiti igračima da glasaju u MVP Anketi bez administratorskog koda.
             </p>
           </div>
 

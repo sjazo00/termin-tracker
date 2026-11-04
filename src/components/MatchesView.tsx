@@ -11,6 +11,7 @@ interface MatchesViewProps {
   onDeleteMatch: (id: string) => void;
   adminPin: string;
   onSelectPlayer?: (playerId: string) => void;
+  onOpenMvpPoll?: (match: Match) => void;
 }
 
 export const MatchesView: React.FC<MatchesViewProps> = ({
@@ -21,6 +22,7 @@ export const MatchesView: React.FC<MatchesViewProps> = ({
   onDeleteMatch,
   adminPin,
   onSelectPlayer,
+  onOpenMvpPoll,
 }) => {
   // Track expanded cards and which view mode ('pitch' | 'list') for each card
   const [expandedMatchId, setExpandedMatchId] = useState<string | null>(matches[0]?.id || null);
@@ -126,6 +128,11 @@ export const MatchesView: React.FC<MatchesViewProps> = ({
               ...(match.match_players?.filter((mp) => (mp.goals || 0) > 0) || []),
             ].sort((a, b) => b.goals - a.goals || (a.player?.name || '').localeCompare(b.player?.name || ''));
 
+            // Own goals scorers
+            const allOwnScorers = [
+              ...(match.match_players?.filter((mp) => (mp.own_goals || 0) > 0) || []),
+            ].sort((a, b) => (b.own_goals || 0) - (a.own_goals || 0));
+
             const isZeleniWinner = match.zeleni_score > match.sareni_score;
             const isSareniWinner = match.sareni_score > match.zeleni_score;
 
@@ -148,7 +155,7 @@ export const MatchesView: React.FC<MatchesViewProps> = ({
                     )}
                   </div>
 
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-2 sm:gap-3">
                     {match.mvp_player && (
                       <span
                         onClick={() => onSelectPlayer && onSelectPlayer(match.mvp_player_id!)}
@@ -159,6 +166,17 @@ export const MatchesView: React.FC<MatchesViewProps> = ({
                         <Award className="w-3.5 h-3.5 text-purple-300" />
                         <span>MVP: {match.mvp_player.name}</span>
                       </span>
+                    )}
+
+                    {onOpenMvpPoll && (
+                      <button
+                        onClick={() => onOpenMvpPoll(match)}
+                        className="inline-flex items-center gap-1.5 text-xs font-bold text-purple-300 bg-purple-950/50 hover:bg-purple-900/70 border border-purple-500/40 px-2.5 py-1 rounded-full shadow-sm transition-colors"
+                        title="Glasanje za MVP igrača termina"
+                      >
+                        <Award className="w-3.5 h-3.5 text-purple-400" />
+                        <span>{match.mvp_player ? 'Pregled Ankete' : '🗳️ MVP Anketa'}</span>
+                      </button>
                     )}
 
                     <button
@@ -278,8 +296,39 @@ export const MatchesView: React.FC<MatchesViewProps> = ({
                               </span>
                               <span className="font-mono font-black text-sm text-white bg-black/60 px-2 py-0.5 rounded-md border border-white/20">
                                 ⚽ {scorer.goals}
+                                {scorer.penalty_goals ? (
+                                  <span className="text-[11px] text-amber-300 ml-1 font-bold">
+                                    ({scorer.penalty_goals}p)
+                                  </span>
+                                ) : null}
                               </span>
                             </div>
+                          );
+                        })}
+                      </div>
+                    )}
+
+                    {/* Own Goals list */}
+                    {allOwnScorers.length > 0 && (
+                      <div className="mt-2.5 pt-2 border-t border-[#1a2d21]/70 flex flex-wrap items-center gap-2">
+                        <span className="text-[11px] font-bold text-rose-400 flex items-center gap-1">
+                          ⚠️ Autogolovi (bod za protivnika):
+                        </span>
+                        {allOwnScorers.map((og) => {
+                          const opponentName = og.team === 'zeleni' ? 'Šarene' : 'Zelene';
+                          return (
+                            <span
+                              key={og.player_id}
+                              onClick={() => onSelectPlayer && onSelectPlayer(og.player_id)}
+                              className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl border border-rose-800/60 bg-rose-950/40 text-rose-300 text-xs font-bold ${
+                                onSelectPlayer ? 'cursor-pointer hover:bg-rose-900/40' : ''
+                              }`}
+                            >
+                              <span>{og.player?.name}</span>
+                              <span className="bg-rose-900/80 px-1.5 py-0.2 rounded text-[10px] text-rose-200">
+                                {og.own_goals} AG (+{og.own_goals} za {opponentName})
+                              </span>
+                            </span>
                           );
                         })}
                       </div>
@@ -362,13 +411,21 @@ export const MatchesView: React.FC<MatchesViewProps> = ({
                                         </span>
                                       )}
                                     </span>
-                                    <span
-                                      className={`font-mono font-bold ${
-                                        mp.goals > 0 ? 'text-emerald-400 text-sm' : 'text-slate-500 text-xs'
-                                      }`}
-                                    >
-                                      {mp.goals > 0 ? `⚽ ${mp.goals}` : '0'}
-                                    </span>
+                                    <div className="flex items-center gap-2">
+                                      {mp.goals > 0 && (
+                                        <span className="font-mono font-bold text-emerald-400 text-sm">
+                                          ⚽ {mp.goals}{mp.penalty_goals ? ` (${mp.penalty_goals}p)` : ''}
+                                        </span>
+                                      )}
+                                      {(mp.own_goals || 0) > 0 && (
+                                        <span className="text-[10px] font-bold font-mono text-rose-400 bg-rose-950/60 px-1.5 py-0.5 rounded border border-rose-800/50">
+                                          ⚠️ {mp.own_goals} AG
+                                        </span>
+                                      )}
+                                      {mp.goals === 0 && (!mp.own_goals || mp.own_goals === 0) && (
+                                        <span className="text-slate-500 text-xs">0</span>
+                                      )}
+                                    </div>
                                   </div>
                                 ))
                               ) : (
@@ -404,13 +461,21 @@ export const MatchesView: React.FC<MatchesViewProps> = ({
                                         </span>
                                       )}
                                     </span>
-                                    <span
-                                      className={`font-mono font-bold ${
-                                        mp.goals > 0 ? 'text-amber-400 text-sm' : 'text-slate-500 text-xs'
-                                      }`}
-                                    >
-                                      {mp.goals > 0 ? `⚽ ${mp.goals}` : '0'}
-                                    </span>
+                                    <div className="flex items-center gap-2">
+                                      {mp.goals > 0 && (
+                                        <span className="font-mono font-bold text-amber-400 text-sm">
+                                          ⚽ {mp.goals}{mp.penalty_goals ? ` (${mp.penalty_goals}p)` : ''}
+                                        </span>
+                                      )}
+                                      {(mp.own_goals || 0) > 0 && (
+                                        <span className="text-[10px] font-bold font-mono text-rose-400 bg-rose-950/60 px-1.5 py-0.5 rounded border border-rose-800/50">
+                                          ⚠️ {mp.own_goals} AG
+                                        </span>
+                                      )}
+                                      {mp.goals === 0 && (!mp.own_goals || mp.own_goals === 0) && (
+                                        <span className="text-slate-500 text-xs">0</span>
+                                      )}
+                                    </div>
                                   </div>
                                 ))
                               ) : (

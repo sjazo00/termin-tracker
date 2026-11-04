@@ -18,7 +18,9 @@ export interface MatchPlayer {
   match_id?: string;
   player_id: string;
   team: 'zeleni' | 'sareni';
-  goals: number;
+  goals: number; // Ukupno postignutih golova za ekipu (uključujući penale)
+  penalty_goals?: number; // Od toga golova iz penala
+  own_goals?: number; // Autogolovi (koji se pribrajaju protivničkoj ekipi)
   player?: Player;
 }
 
@@ -46,4 +48,17 @@ export interface PlayerStats {
   goals: number;
   goalsPerMatch: number;
   mvpCount: number;
+  penaltyGoals: number;
+  ownGoals: number;
 }
+
+export interface MvpVote {
+  id: string;
+  match_id: string;
+  voter_player_id: string;
+  candidate_player_id: string;
+  created_at?: string;
+  voter_player?: Player;
+  candidate_player?: Player;
+}
+

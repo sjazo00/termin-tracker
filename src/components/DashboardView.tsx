@@ -13,6 +13,7 @@ interface DashboardViewProps {
   onOpenSettings: () => void;
   isSupabaseConnected: boolean;
   onSelectPlayer?: (playerId: string) => void;
+  onOpenMvpPoll?: (match: Match) => void;
 }
 
 export const DashboardView: React.FC<DashboardViewProps> = ({
@@ -25,6 +26,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   onOpenSettings,
   isSupabaseConnected,
   onSelectPlayer,
+  onOpenMvpPoll,
 }) => {
   const [showPitch, setShowPitch] = useState(true);
 
@@ -63,6 +65,10 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   const allLatestScorers = [
     ...(latestMatch?.match_players?.filter((mp) => (mp.goals || 0) > 0) || []),
   ].sort((a, b) => b.goals - a.goals || (a.player?.name || '').localeCompare(b.player?.name || ''));
+
+  const allLatestOwnScorers = [
+    ...(latestMatch?.match_players?.filter((mp) => (mp.own_goals || 0) > 0) || []),
+  ].sort((a, b) => (b.own_goals || 0) - (a.own_goals || 0));
 
   return (
     <div className="space-y-8 pb-14">
@@ -138,6 +144,16 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               <span className="px-3 py-1 rounded-full text-xs font-black bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
                 Posljednji odigrani termin
               </span>
+              {onOpenMvpPoll && (
+                <button
+                  onClick={() => onOpenMvpPoll(latestMatch)}
+                  className="px-3 py-1 rounded-xl text-xs font-bold text-purple-300 hover:text-white bg-purple-950/60 border border-purple-600/50 flex items-center gap-1.5 transition-colors shadow-sm"
+                  title="Anketa za MVP igrača termina"
+                >
+                  <Award className="w-3.5 h-3.5 text-purple-400" />
+                  <span>{latestMatch.mvp_player ? 'MVP Anketa' : '🗳️ MVP Anketa'}</span>
+                </button>
+              )}
               <button
                 onClick={() => setShowPitch(!showPitch)}
                 className="px-3 py-1 rounded-xl text-xs font-bold text-slate-300 hover:text-white bg-[#16271c] border border-[#264431] flex items-center gap-1.5 transition-colors"
@@ -243,8 +259,39 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                         </span>
                         <span className="font-mono font-black text-sm text-white bg-black/60 px-2 py-0.5 rounded-md border border-white/20">
                           ⚽ {scorer.goals}
+                          {scorer.penalty_goals ? (
+                            <span className="text-[11px] text-amber-300 ml-1 font-bold">
+                              ({scorer.penalty_goals}p)
+                            </span>
+                          ) : null}
                         </span>
                       </div>
+                    );
+                  })}
+                </div>
+              )}
+
+              {/* Own Goals in Latest Match */}
+              {allLatestOwnScorers.length > 0 && (
+                <div className="mt-3 pt-3 border-t border-[#1b2f21] flex flex-wrap items-center gap-2">
+                  <span className="text-xs font-bold text-rose-400 flex items-center gap-1">
+                    ⚠️ Autogolovi (bod za protivnika):
+                  </span>
+                  {allLatestOwnScorers.map((og) => {
+                    const opponentName = og.team === 'zeleni' ? 'Šarene' : 'Zelene';
+                    return (
+                      <span
+                        key={og.player_id}
+                        onClick={() => onSelectPlayer && onSelectPlayer(og.player_id)}
+                        className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-rose-800/60 bg-rose-950/40 text-rose-300 text-xs font-bold ${
+                          onSelectPlayer ? 'cursor-pointer hover:bg-rose-900/40' : ''
+                        }`}
+                      >
+                        <span>{og.player?.name}</span>
+                        <span className="bg-rose-900/80 px-1.5 py-0.2 rounded text-[10px] text-rose-200">
+                          {og.own_goals} AG (+{og.own_goals} za {opponentName})
+                        </span>
+                      </span>
                     );
                   })}
                 </div>
@@ -271,7 +318,10 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                         }`}
                       >
                         <span className="text-white font-medium">{mp.player?.name}</span>
-                        <span className="font-bold text-emerald-400 font-mono">⚽ {mp.goals}</span>
+                        <span className="font-bold text-emerald-400 font-mono">
+                          ⚽ {mp.goals}
+                          {mp.penalty_goals ? ` (${mp.penalty_goals}p)` : ''}
+                        </span>
                       </div>
                     ))
                   ) : (
@@ -297,7 +347,10 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                         }`}
                       >
                         <span className="text-white font-medium">{mp.player?.name}</span>
-                        <span className="font-bold text-amber-400 font-mono">⚽ {mp.goals}</span>
+                        <span className="font-bold text-amber-400 font-mono">
+                          ⚽ {mp.goals}
+                          {mp.penalty_goals ? ` (${mp.penalty_goals}p)` : ''}
+                        </span>
                       </div>
                     ))
                   ) : (
@@ -308,9 +361,9 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
             </div>
 
-            {/* MVP Badge */}
-            {latestMatch.mvp_player && (
-              <div className="mt-6 pt-5 border-t border-[#1b2f21] flex items-center justify-center">
+            {/* MVP Badge or MVP Poll CTA */}
+            {latestMatch.mvp_player ? (
+              <div className="mt-6 pt-5 border-t border-[#1b2f21] flex flex-col sm:flex-row items-center justify-center gap-3">
                 <div
                   onClick={() => onSelectPlayer && onSelectPlayer(latestMatch.mvp_player_id!)}
                   className={`inline-flex items-center gap-3 px-5 py-2.5 rounded-2xl bg-gradient-to-r from-purple-950/60 via-purple-900/40 to-purple-950/60 border border-purple-500/40 text-purple-200 shadow-xl ${
@@ -329,8 +382,28 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                     </div>
                   </div>
                 </div>
+
+                {onOpenMvpPoll && (
+                  <button
+                    onClick={() => onOpenMvpPoll(latestMatch)}
+                    className="px-4 py-2.5 rounded-2xl bg-[#14231a] hover:bg-[#1a2e22] border border-purple-500/40 text-purple-300 hover:text-white text-xs font-bold transition-all flex items-center gap-2 shadow-md"
+                  >
+                    <Trophy className="w-4 h-4 text-purple-400" />
+                    <span>Pregledaj anketu i glasove</span>
+                  </button>
+                )}
               </div>
-            )}
+            ) : onOpenMvpPoll ? (
+              <div className="mt-6 pt-5 border-t border-[#1b2f21] flex items-center justify-center">
+                <button
+                  onClick={() => onOpenMvpPoll(latestMatch)}
+                  className="px-6 py-3 rounded-2xl bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-700 hover:from-purple-500 hover:to-indigo-500 text-white font-black text-sm shadow-xl shadow-purple-600/30 flex items-center gap-2.5 transition-all hover:scale-105"
+                >
+                  <Award className="w-5 h-5 text-yellow-300 animate-bounce" />
+                  <span>🗳️ MVP Anketa je otvorena: Glasaj za igrača utakmice!</span>
+                </button>
+              </div>
+            ) : null}
 
             {/* Notes if present */}
             {latestMatch.notes && (

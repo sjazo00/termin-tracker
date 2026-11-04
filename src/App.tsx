@@ -7,6 +7,7 @@ import { MatchesView } from './components/MatchesView';
 import { AddMatchView } from './components/AddMatchView';
 import { PlayersModal } from './components/PlayersModal';
 import { SettingsModal } from './components/SettingsModal';
+import { MvpPollModal } from './components/MvpPollModal';
 import { dataService } from './lib/dataService';
 import type { Player, Season, Match } from './types';
 import { Loader2 } from 'lucide-react';
@@ -25,6 +26,8 @@ export function App() {
   // Modals
   const [isPlayersModalOpen, setIsPlayersModalOpen] = useState(false);
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
+  const [isMvpPollOpen, setIsMvpPollOpen] = useState(false);
+  const [mvpPollMatchId, setMvpPollMatchId] = useState<string | undefined>(undefined);
 
   // Admin PIN (persisted in localStorage, default '1234')
   const [adminPin, setAdminPin] = useState(() => {
@@ -96,7 +99,13 @@ export function App() {
 
   const handleAddMatch = async (
     matchData: Omit<Match, 'id' | 'created_at' | 'match_players' | 'mvp_player' | 'season'>,
-    playersData: Array<{ player_id: string; team: 'zeleni' | 'sareni'; goals: number }>
+    playersData: Array<{
+      player_id: string;
+      team: 'zeleni' | 'sareni';
+      goals: number;
+      penalty_goals?: number;
+      own_goals?: number;
+    }>
   ) => {
     await dataService.addMatch(matchData, playersData);
     await loadData();
@@ -124,6 +133,28 @@ export function App() {
   // Find latest match
   const latestMatch = matches.length > 0 ? matches[0] : undefined;
 
+  const handleOpenMvpPoll = (match?: Match) => {
+    setMvpPollMatchId(match?.id || latestMatch?.id);
+    setIsMvpPollOpen(true);
+  };
+
+  const handleMvpAssigned = async (matchId: string, winnerId: string) => {
+    setMatches((prev) =>
+      prev.map((m) => {
+        if (m.id === matchId) {
+          const winnerPlayer = players.find((p) => p.id === winnerId);
+          return {
+            ...m,
+            mvp_player_id: winnerId || null,
+            mvp_player: winnerPlayer,
+          };
+        }
+        return m;
+      })
+    );
+    await loadData();
+  };
+
   return (
     <div className="min-h-screen bg-[#070b08] text-slate-100 flex flex-col font-sans selection:bg-emerald-500 selection:text-slate-950">
       {/* Top Football Navigation */}
@@ -132,6 +163,7 @@ export function App() {
         setActiveTab={setActiveTab}
         onOpenSettings={() => setIsSettingsModalOpen(true)}
         onOpenPlayersModal={() => setIsPlayersModalOpen(true)}
+        onOpenMvpPoll={() => handleOpenMvpPoll()}
         isSupabaseConnected={isSupabaseConnected}
       />
 
@@ -155,6 +187,7 @@ export function App() {
                 onOpenSettings={() => setIsSettingsModalOpen(true)}
                 isSupabaseConnected={isSupabaseConnected}
                 onSelectPlayer={handleSelectPlayer}
+                onOpenMvpPoll={handleOpenMvpPoll}
               />
             )}
 
@@ -191,6 +224,7 @@ export function App() {
                 onDeleteMatch={handleDeleteMatch}
                 adminPin={adminPin}
                 onSelectPlayer={handleSelectPlayer}
+                onOpenMvpPoll={handleOpenMvpPoll}
               />
             )}
 
@@ -255,6 +289,15 @@ export function App() {
         setAdminPin={setAdminPin}
         seasons={seasons}
         onAddSeason={handleAddSeason}
+      />
+
+      <MvpPollModal
+        isOpen={isMvpPollOpen}
+        onClose={() => setIsMvpPollOpen(false)}
+        matches={matches}
+        initialMatchId={mvpPollMatchId}
+        adminPin={adminPin}
+        onMvpAssigned={handleMvpAssigned}
       />
     </div>
   );

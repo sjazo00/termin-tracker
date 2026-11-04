@@ -9,6 +9,7 @@ import {
   CheckCircle2,
   AlertTriangle,
   UserCheck,
+  Award,
 } from 'lucide-react';
 
 export type NavTabType = 'dashboard' | 'stats' | 'players' | 'matches' | 'add-match';
@@ -18,6 +19,7 @@ interface NavbarProps {
   setActiveTab: (tab: NavTabType) => void;
   onOpenSettings: () => void;
   onOpenPlayersModal: () => void;
+  onOpenMvpPoll: () => void;
   isSupabaseConnected: boolean;
 }
 
@@ -26,6 +28,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   setActiveTab,
   onOpenSettings,
   onOpenPlayersModal,
+  onOpenMvpPoll,
   isSupabaseConnected,
 }) => {
   return (
@@ -111,6 +114,16 @@ export const Navbar: React.FC<NavbarProps> = ({
             >
               <Calendar className={`w-4 h-4 ${activeTab === 'matches' ? 'text-slate-950' : 'text-emerald-400'}`} />
               <span>Utakmice</span>
+            </button>
+
+            {/* MVP Anketa */}
+            <button
+              onClick={onOpenMvpPoll}
+              className="px-3.5 py-2 rounded-xl text-sm font-bold transition-all flex items-center gap-2 text-purple-300 hover:text-white hover:bg-purple-950/40 border border-purple-800/40"
+              title="Glasaj za MVP-a utakmice"
+            >
+              <Award className="w-4 h-4 text-purple-400" />
+              <span>MVP Anketa</span>
             </button>
 
             {/* Unos Utakmice */}
@@ -205,6 +218,13 @@ export const Navbar: React.FC<NavbarProps> = ({
           >
             <Calendar className="w-3.5 h-3.5" />
             Utakmice
+          </button>
+          <button
+            onClick={onOpenMvpPoll}
+            className="py-1.5 px-2 rounded-lg flex items-center gap-1 text-purple-300 font-bold"
+          >
+            <Award className="w-3.5 h-3.5" />
+            Anketa
           </button>
           <button
             onClick={() => setActiveTab('add-match')}

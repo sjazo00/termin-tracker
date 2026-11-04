@@ -32,15 +32,31 @@ CREATE TABLE IF NOT EXISTS public.matches (
     created_at TIMESTAMPTZ DEFAULT now()
 );
 
--- 4. MATCH_PLAYERS (Igrači na utakmici, tim i golovi)
+-- 4. MATCH_PLAYERS (Igrači na utakmici, tim, golovi, penali, autogolovi)
 CREATE TABLE IF NOT EXISTS public.match_players (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     match_id UUID NOT NULL REFERENCES public.matches(id) ON DELETE CASCADE,
     player_id UUID NOT NULL REFERENCES public.players(id) ON DELETE CASCADE,
     team TEXT NOT NULL CHECK (team IN ('zeleni', 'sareni')),
     goals INT NOT NULL DEFAULT 0,
+    penalty_goals INT NOT NULL DEFAULT 0,
+    own_goals INT NOT NULL DEFAULT 0,
     created_at TIMESTAMPTZ DEFAULT now(),
     UNIQUE(match_id, player_id)
+);
+
+-- Migracija za postojeće baze (ako tablica već postoji)
+ALTER TABLE public.match_players ADD COLUMN IF NOT EXISTS penalty_goals INT DEFAULT 0;
+ALTER TABLE public.match_players ADD COLUMN IF NOT EXISTS own_goals INT DEFAULT 0;
+
+-- 5. MVP_VOTES (Glasovi igrača za MVP-a utakmice)
+CREATE TABLE IF NOT EXISTS public.mvp_votes (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    match_id UUID NOT NULL REFERENCES public.matches(id) ON DELETE CASCADE,
+    voter_player_id UUID NOT NULL REFERENCES public.players(id) ON DELETE CASCADE,
+    candidate_player_id UUID NOT NULL REFERENCES public.players(id) ON DELETE CASCADE,
+    created_at TIMESTAMPTZ DEFAULT now(),
+    UNIQUE(match_id, voter_player_id)
 );
 
 -- ========================================================
@@ -52,12 +68,14 @@ ALTER TABLE public.seasons ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.players ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.matches ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.match_players ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.mvp_votes ENABLE ROW LEVEL SECURITY;
 
 -- Dozvole za čitanje (Svi mogu pregledavati)
 CREATE POLICY "Public read seasons" ON public.seasons FOR SELECT USING (true);
 CREATE POLICY "Public read players" ON public.players FOR SELECT USING (true);
 CREATE POLICY "Public read matches" ON public.matches FOR SELECT USING (true);
 CREATE POLICY "Public read match_players" ON public.match_players FOR SELECT USING (true);
+CREATE POLICY "Public read mvp_votes" ON public.mvp_votes FOR SELECT USING (true);
 
 -- Dozvole za unos i izmjene (Aplikacija unosi rezultate)
 CREATE POLICY "Public insert seasons" ON public.seasons FOR INSERT WITH CHECK (true);
@@ -73,6 +91,10 @@ CREATE POLICY "Public delete matches" ON public.matches FOR DELETE USING (true);
 CREATE POLICY "Public insert match_players" ON public.match_players FOR INSERT WITH CHECK (true);
 CREATE POLICY "Public update match_players" ON public.match_players FOR UPDATE USING (true);
 CREATE POLICY "Public delete match_players" ON public.match_players FOR DELETE USING (true);
+
+CREATE POLICY "Public insert mvp_votes" ON public.mvp_votes FOR INSERT WITH CHECK (true);
+CREATE POLICY "Public update mvp_votes" ON public.mvp_votes FOR UPDATE USING (true);
+CREATE POLICY "Public delete mvp_votes" ON public.mvp_votes FOR DELETE USING (true);
 
 -- ========================================================
 -- POČETNI PODACI (SEED DATA)

@@ -73,7 +73,17 @@ export const SoccerPitch: React.FC<SoccerPitchProps> = ({
           {/* Goal Badge */}
           {goals > 0 && (
             <span className="absolute -top-1.5 -right-2 bg-white text-slate-950 text-[10px] sm:text-xs font-black px-1.5 py-0.2 rounded-full border border-black/30 shadow-md flex items-center gap-0.5 leading-tight">
-              ⚽<span className="font-mono">{goals}</span>
+              ⚽<span className="font-mono">{goals}{mp.penalty_goals ? `(${mp.penalty_goals}p)` : ''}</span>
+            </span>
+          )}
+
+          {/* Own Goal Badge */}
+          {(mp.own_goals || 0) > 0 && (
+            <span
+              className="absolute -top-1.5 -left-2 bg-rose-600 text-white text-[9px] sm:text-[10px] font-black px-1.5 py-0.2 rounded-full border border-rose-300 shadow-md flex items-center gap-0.5 leading-tight"
+              title={`${mp.own_goals} autogol`}
+            >
+              ⚠️<span className="font-mono">{mp.own_goals}AG</span>
             </span>
           )}
 

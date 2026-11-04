@@ -385,9 +385,19 @@ export const PlayersView: React.FC<PlayersViewProps> = ({
                     <div className="text-2xl sm:text-3xl font-mono font-black text-white flex items-baseline gap-1">
                       ⚽ {selectedStats?.goals || 0}
                     </div>
-                    <span className="text-[11px] text-slate-400 mt-0.5 block">
-                      Prosjek: <strong>{selectedStats?.goalsPerMatch || 0}</strong> po ut.
-                    </span>
+                    <div className="flex flex-wrap items-center gap-1.5 mt-1 text-[11px] text-slate-400">
+                      <span>Prosjek: <strong>{selectedStats?.goalsPerMatch || 0}</strong> po ut.</span>
+                      {(selectedStats?.penaltyGoals || 0) > 0 && (
+                        <span className="text-amber-300 font-bold">
+                          • 🎯 {selectedStats?.penaltyGoals}p
+                        </span>
+                      )}
+                      {(selectedStats?.ownGoals || 0) > 0 && (
+                        <span className="text-rose-400 font-bold">
+                          • ⚠️ {selectedStats?.ownGoals} AG
+                        </span>
+                      )}
+                    </div>
                   </div>
 
                   {/* Win rate */}
@@ -582,12 +592,24 @@ export const PlayersView: React.FC<PlayersViewProps> = ({
                                 {goals > 0 ? (
                                   <>
                                     <span>⚽</span>
-                                    <span className="text-emerald-300 font-extrabold">{goals} {goals === 1 ? 'gol' : goals < 5 ? 'gola' : 'golova'}</span>
+                                    <span className="text-emerald-300 font-extrabold">
+                                      {goals} {goals === 1 ? 'gol' : goals < 5 ? 'gola' : 'golova'}
+                                    </span>
+                                    {item.mp.penalty_goals ? (
+                                      <span className="text-amber-300 text-xs font-bold">
+                                        ({item.mp.penalty_goals}p)
+                                      </span>
+                                    ) : null}
                                   </>
                                 ) : (
                                   <span className="text-xs text-slate-400 italic">Bez gola (0)</span>
                                 )}
                               </span>
+                              {(item.mp.own_goals || 0) > 0 && (
+                                <span className="text-[10px] font-bold text-rose-400 bg-rose-950/60 px-1.5 py-0.2 rounded border border-rose-800/50 block text-right mt-0.5">
+                                  ⚠️ {item.mp.own_goals} autogol
+                                </span>
+                              )}
                             </div>
 
                             {onNavigateToMatch && (
